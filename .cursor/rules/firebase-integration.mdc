@@ -1,5 +1,74 @@
 ---
-description: 
-globs: 
+description: Firebase Integration Standards
+globs: lib/**/*
 ---
- 
+# Firebase Integration Standards
+
+Enforces best practices for Firebase integration in the Flutter project.
+
+<rule>
+name: firebase_integration
+description: Standards for Firebase implementation and security
+filters:
+  - type: content
+    pattern: "(?i)firebase|firestore|authentication"
+  - type: file_extension
+    pattern: "\\.dart$"
+
+actions:
+  - type: suggest
+    message: |
+      Firebase integration must follow these standards:
+
+      1. Authentication:
+         ```dart
+         // Use proper error handling
+         try {
+           await _auth.signInWithEmailAndPassword(...);
+         } on FirebaseAuthException catch (e) {
+           // Handle specific error cases
+         }
+         ```
+
+      2. Firestore:
+         ```dart
+         // Use type-safe models with freezed
+         @freezed
+         class Video with _$Video {
+           factory Video({
+             required String id,
+             required String title,
+             required String url,
+           }) = _Video;
+         }
+         ```
+
+      3. Security Rules:
+         ```
+         // Implement role-based access
+         match /videos/{videoId} {
+           allow read: if true;
+           allow write: if request.auth != null && 
+             (request.auth.token.role == 'creator' || request.auth.token.role == 'admin');
+         }
+         ```
+
+      4. Repository Pattern:
+         ```dart
+         // Always use repository pattern for Firebase access
+         abstract class VideoRepository {
+           Future<List<Video>> getVideos();
+           Future<void> addVideo(Video video);
+         }
+         ```
+
+examples:
+  - input: "Direct Firestore access in UI"
+    output: "Access Firestore through repository pattern"
+  - input: "Missing error handling in auth"
+    output: "Implement proper FirebaseAuthException handling"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 

@@ -1,5 +1,100 @@
 ---
-description: 
-globs: 
+description: AI-Generated Guitar Tabs Standards
+globs: "**/*.{dart,md,txt}"
 ---
- 
+# AI-Generated Guitar Tabs Standards
+
+Enforces standards for generating and formatting guitar tablature in the Riff app.
+
+<rule>
+name: ai_tabs_generation
+description: Standards for AI-generated guitar tablature formatting and validation
+filters:
+  - type: content
+    pattern: "(?i)tab|tablature|guitar|\\|---|e\\||B\\||G\\||D\\||A\\||E\\||tuning:"
+  - type: file_extension
+    pattern: "\\.(dart|md|txt)$"
+
+actions:
+  - type: reject
+    conditions:
+      # Reject tabs without proper string labels
+      - pattern: "^[^eEBGDAE]\\|"
+        message: "Tab lines must start with proper string labels (e|B|G|D|A|E)"
+      # Reject invalid note positions
+      - pattern: "\\|0"
+        message: "Note positions must be greater than zero (minimum valid position is 1)"
+      # Reject adjacent notes without spacing
+      - pattern: "\\d\\d"
+        message: "Notes must have at least one dash (-) between them"
+
+  - type: suggest
+    message: |
+      AI-Generated Tab Requirements:
+
+      1. Layout Structure:
+         ```
+         [Song Title - Artist]
+
+         Tuning: E A D G B e  # Only if non-standard
+
+         [Section Name]
+         e|---5-7---|
+         B|---5-----|
+         G|---------|
+         D|---------|
+         A|---------|
+         E|---------|
+
+
+         [Next Section]  # Note: Two empty lines between sections
+         ```
+
+      2. Note Position Rules:
+         - Minimum position value: 1 (never 0)
+         - Required spacing between notes: -
+         ```
+         Valid:           Invalid:
+         e|--1-1--       e|--11--- (❌)
+         B|---1--1       B|--0---- (❌)
+         ```
+
+      3. Guitar Techniques:
+         ```
+         Bends:     15b17    (Bend from fret 15 to pitch of fret 17)
+         Releases:   r15      (Release bend to fret 15)
+         Pull-offs:  p13      (Pull-off to fret 13)
+         Combined:   15b17r15p13
+         ```
+
+      4. Section Formatting:
+         - Two empty lines between sections
+         - Clear section labels in [brackets]
+         - Consistent string order (e B G D A E)
+         - Equal measure lengths across strings
+
+      5. Sound Recognition Guidelines:
+         - Bends (b): Listen for gradual pitch rise
+         - Releases (r): Listen for gradual pitch descent
+         - Pull-offs (p): Listen for quick transition with single attack
+
+examples:
+  - input: |
+      [Verse]
+      e|0-----|
+      B|--11--|
+    output: |
+      [Verse]
+      e|1-----|  # Fixed: Changed 0 to 1
+      B|--1-2--|  # Fixed: Added spacing between notes
+
+  - input: |
+      [Chorus]
+      e|--12b14r12--|
+      B|------------|
+    output: "Valid technique notation for bend and release"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 

@@ -96,3 +96,6 @@ android/.idea/
 
 # Others
 .metadata 
+
+# Firebase
+/node_modules

@@ -1,1 +1,150 @@
- 
+---
+description: Detailed Code Documentation Standards
+globs: "**/*"
+---
+# Detailed Code Documentation Standards
+
+Enforces comprehensive documentation and explanation standards for code generation and modifications.
+
+<rule>
+name: detailed_code_documentation
+description: Standards for detailed code documentation and explanations
+filters:
+  - type: content
+    pattern: "(?i)code|function|class|method|variable|import|const|let|var"
+  - type: file_extension
+    pattern: "\\.(dart|js|html|css|yaml)$"
+
+actions:
+  - type: suggest
+    message: |
+      When writing or modifying code:
+
+      1. File-Level Documentation:
+         ```dart
+         /// This file handles [specific functionality].
+         /// It is responsible for:
+         /// * [responsibility 1]
+         /// * [responsibility 2]
+         /// 
+         /// Key components:
+         /// * [Component 1]: [description]
+         /// * [Component 2]: [description]
+         ```
+
+      2. Class Documentation:
+         ```dart
+         /// A class that [does something specific].
+         /// 
+         /// Use this class when you need to:
+         /// * [use case 1]
+         /// * [use case 2]
+         /// 
+         /// Example usage:
+         /// ```dart
+         /// final instance = MyClass();
+         /// await instance.doSomething();
+         /// ```
+         class MyClass { }
+         ```
+
+      3. Method/Function Documentation:
+         ```dart
+         /// Performs [specific action] by [doing something].
+         /// 
+         /// Parameters:
+         /// * [param1]: Used for [specific purpose]
+         /// * [param2]: Controls how [something works]
+         /// 
+         /// Returns: [description of return value]
+         /// 
+         /// Throws:
+         /// * [ErrorType]: When [specific condition occurs]
+         /// 
+         /// Example:
+         /// ```dart
+         /// await myFunction('value', true);
+         /// ```
+         Future<void> myFunction(String param1, bool param2) async { }
+         ```
+
+      4. Variable Documentation:
+         ```dart
+         /// Stores [specific data] used for [specific purpose].
+         /// Updated when [specific condition occurs].
+         final myVariable = value;
+         ```
+
+      5. Code Block Comments:
+         ```dart
+         // Step 1: Initialize the component
+         final component = await initialize();
+         
+         // Step 2: Process the data
+         // This is needed because [specific reason]
+         final result = await process(component);
+         
+         // Step 3: Clean up resources
+         await cleanup();
+         ```
+
+      6. Complex Logic Explanation:
+         ```dart
+         // This algorithm works by:
+         // 1. First, we [do something]
+         // 2. Then, we [do something else]
+         // 3. Finally, we [complete the process]
+         // 
+         // Note: We use [specific approach] because [reason]
+         ```
+
+      7. Change Documentation:
+         ```dart
+         // MODIFIED: [date] - [description of change]
+         // REASON: [explanation of why the change was needed]
+         // IMPACT: [what this change affects]
+         ```
+
+examples:
+  - input: |
+      class VideoPlayer {
+        void play() {
+          // Play video
+        }
+      }
+    output: |
+      /// A class that handles video playback functionality.
+      /// 
+      /// Use this class when you need to:
+      /// * Play video content in the app
+      /// * Control video playback state
+      /// * Handle video loading and buffering
+      /// 
+      /// Example usage:
+      /// ```dart
+      /// final player = VideoPlayer();
+      /// player.play();
+      /// ```
+      class VideoPlayer {
+        /// Starts playing the currently loaded video.
+        /// 
+        /// This method will:
+        /// 1. Check if video is loaded
+        /// 2. Initialize playback if needed
+        /// 3. Begin video playback
+        /// 
+        /// Throws:
+        /// * VideoNotLoadedException: If no video is loaded
+        void play() {
+          // Step 1: Verify video is loaded and ready
+          
+          // Step 2: Initialize playback components
+          
+          // Step 3: Begin video playback
+        }
+      }
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 

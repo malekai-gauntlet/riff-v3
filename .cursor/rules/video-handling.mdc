@@ -1,5 +1,84 @@
 ---
-description: 
-globs: 
+description: Video Handling Standards
+globs: lib/**/*
 ---
- 
+# Video Handling Standards
+
+Enforces best practices for video handling in the Flutter project.
+
+<rule>
+name: video_handling
+description: Standards for video player implementation and optimization
+filters:
+  - type: content
+    pattern: "(?i)video_player|chewie|cached_network_image"
+  - type: file_extension
+    pattern: "\\.dart$"
+
+actions:
+  - type: suggest
+    message: |
+      Video handling must follow these standards:
+
+      1. Video Player Initialization:
+         ```dart
+         // Always initialize in initState and dispose properly
+         @override
+         void initState() {
+           super.initState();
+           _videoPlayerController = VideoPlayerController.network(widget.videoUrl)
+             ..initialize().then((_) {
+               setState(() {});
+             });
+         }
+
+         @override
+         void dispose() {
+           _videoPlayerController.dispose();
+           super.dispose();
+         }
+         ```
+
+      2. Video Preloading:
+         ```dart
+         // Implement preloading for smooth scrolling
+         void preloadNextVideo(String url) {
+           VideoPlayerController.network(url).initialize();
+         }
+         ```
+
+      3. Thumbnail Handling:
+         ```dart
+         // Use CachedNetworkImage for thumbnails
+         CachedNetworkImage(
+           imageUrl: thumbnail,
+           placeholder: (context, url) => 
+             const Center(child: CircularProgressIndicator()),
+           errorWidget: (context, url, error) => 
+             const Icon(Icons.error),
+         )
+         ```
+
+      4. State Management:
+         ```dart
+         // Separate video state from UI state
+         @freezed
+         class VideoState with _$VideoState {
+           const factory VideoState({
+             required bool isPlaying,
+             required bool isBuffering,
+             required Duration position,
+           }) = _VideoState;
+         }
+         ```
+
+examples:
+  - input: "Missing video dispose"
+    output: "Add proper dispose method for video controller"
+  - input: "Direct network image"
+    output: "Use CachedNetworkImage for thumbnails"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 

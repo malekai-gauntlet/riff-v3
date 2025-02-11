@@ -1,5 +1,63 @@
 ---
-description: 
-globs: 
+description: Flutter Command Standards
+globs: "**/*"
 ---
- 
+# Flutter Command Standards
+
+Enforces the use of Flutter commands instead of Dart commands for running Flutter applications and migrations.
+
+<rule>
+name: flutter_commands
+description: Ensures proper Flutter command usage instead of Dart commands
+filters:
+  - type: content
+    pattern: "(?i)dart run|flutter run|migration|build_runner"
+  - type: event
+    pattern: "command_execution"
+
+actions:
+  - type: reject
+    conditions:
+      - pattern: "^dart run"
+        message: "Use 'flutter run' instead of 'dart run' for Flutter projects"
+
+  - type: suggest
+    message: |
+      Always use Flutter commands instead of Dart commands:
+
+      ❌ INCORRECT Commands:
+      ```bash
+      dart run
+      dart run build_runner build
+      dart run build_runner watch
+      ```
+
+      ✅ CORRECT Commands:
+      ```bash
+      flutter run
+      flutter pub run build_runner build
+      flutter pub run build_runner watch
+      ```
+
+      Guidelines:
+      1. Always use 'flutter run' instead of 'dart run'
+      2. For build_runner commands, use 'flutter pub run build_runner'
+      3. For migrations, use 'flutter pub run'
+      4. Add --verbose flag for better debugging:
+         ```bash
+         flutter run --verbose
+         flutter pub run build_runner build --verbose
+         ```
+
+examples:
+  - input: "dart run build_runner build"
+    output: "flutter pub run build_runner build"
+  - input: "dart run"
+    output: "flutter run"
+  - input: "dart run some_migration"
+    output: "flutter pub run some_migration"
+
+metadata:
+  priority: critical
+  version: 1.0
+</rule> 

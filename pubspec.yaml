@@ -37,6 +37,7 @@ dependencies:
   cloud_firestore: ^4.9.1
   firebase_storage: ^11.2.6
   firebase_analytics: ^10.8.5
+  cloud_functions: ^4.6.5  # Added for Cloud Functions
 
   # State Management
   flutter_riverpod: ^2.4.0

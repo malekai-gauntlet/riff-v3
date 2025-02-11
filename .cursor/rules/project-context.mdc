@@ -2,4 +2,5 @@
 description: 
 globs: 
 ---
- 
+ - This is a flutter app and PWA. Everything should be optimized for this PWA so it works great on my mobile browser.
+ - This will not be on iOS or Android.

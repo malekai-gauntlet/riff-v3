@@ -1,5 +1,64 @@
 ---
-description: 
-globs: 
+description: Flutter Project Structure
+globs: lib/**/*
 ---
- 
+# Flutter Project Structure
+
+Enforces Clean Architecture and proper file organization in the Flutter project.
+
+<rule>
+name: flutter_project_structure
+description: Standards for organizing Flutter project files following Clean Architecture
+filters:
+  - type: file_extension
+    pattern: "\\.dart$"
+  - type: event
+    pattern: "file_create"
+
+actions:
+  - type: reject
+    conditions:
+      - pattern: "^(?!lib\\/(presentation|domain|data|core)\\/.*\\.dart$)"
+        message: "Dart files must be organized in Clean Architecture layers (presentation, domain, data, core)"
+
+  - type: suggest
+    message: |
+      Flutter project structure should follow Clean Architecture:
+
+      ```
+      lib/
+      ├── presentation/
+      │   ├── pages/
+      │   ├── widgets/
+      │   └── state/
+      ├── domain/
+      │   ├── entities/
+      │   ├── repositories/
+      │   └── usecases/
+      ├── data/
+      │   ├── repositories/
+      │   ├── datasources/
+      │   └── models/
+      └── core/
+          ├── constants/
+          ├── theme/
+          └── utils/
+      ```
+
+      Guidelines:
+      1. Keep widget files under 300 lines
+      2. Use snake_case for file names
+      3. Place reusable widgets in presentation/widgets
+      4. Follow freezed pattern for all models
+      5. Implement Repository pattern for Firebase interactions
+
+examples:
+  - input: "lib/pages/home_page.dart"
+    output: "Move to lib/presentation/pages/home_page.dart"
+  - input: "lib/models/video.dart"
+    output: "Move to lib/data/models/video.dart"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 
