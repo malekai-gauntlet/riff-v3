@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /videos/{videoId} {
+      allow read: if true;  // Anyone can read videos
+      allow write: if true;  // Anyone can write during development
+      
+      // Add this section for comments
+      match /comments/{commentId} {
+        allow read: if true;  // Anyone can read comments
+        allow create: if request.auth != null;  // Must be logged in to comment
+        allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;  // Can only modify own comments
+      }
+    }
+
+    // Add rules for ai_tabs collection
+    match /ai_tabs/{tabId} {
+      allow read: if true;  // Anyone can read tabs
+      allow write: if true;  // Anyone can write during development
+    }
+  }
+} 
