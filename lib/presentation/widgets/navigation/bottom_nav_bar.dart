@@ -52,15 +52,15 @@ class RiffBottomNavBar extends StatelessWidget {
           label: 'Upload',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.library_music_outlined),
-          activeIcon: Icon(Icons.library_music),
-          label: 'Tabs',
-        ),
-        BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
           activeIcon: Icon(Icons.person),
           label: 'Me',
         ),
+        // BottomNavigationBarItem(
+        //   icon: Icon(Icons.library_music_outlined),
+        //   activeIcon: Icon(Icons.library_music),
+        //   label: 'Tabs',
+        // ),
       ],
     );
   }

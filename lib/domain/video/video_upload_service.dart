@@ -22,7 +22,9 @@ class VideoUploadService {
     }
   }
 
-  Future<String?> uploadVideo({
+  /// Uploads a video to Firebase Storage
+  /// Returns a map containing the download URL and storage path
+  Future<Map<String, String>> uploadVideo({
     required html.File file,
     required Function(double) onProgress,
   }) async {
@@ -62,7 +64,11 @@ class VideoUploadService {
       
       // Get download URL
       final downloadUrl = await ref.getDownloadURL();
-      return downloadUrl;
+      
+      return {
+        'downloadUrl': downloadUrl,
+        'storagePath': filename,
+      };
 
     } catch (e) {
       print('Error uploading video: $e');
