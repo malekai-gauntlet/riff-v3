@@ -29,7 +29,9 @@ class TabRepository {
         final doc = querySnapshot.docs.first;
         final data = doc.data() as Map<String, dynamic>;
         
-        print('📄 Tab data: $data'); // Debug print to see what we're getting from Firestore
+        print('📄 Raw tab data: $data'); // Debug print of entire data
+        print('📄 Content structure: ${data['content']}'); // Debug content structure
+        print('📄 Sections structure: ${data['content']['sections']}'); // Debug sections
         
         return TabTemplate(
           tabVersion: TabVersion(
@@ -39,7 +41,7 @@ class TabRepository {
           songInfo: SongInfo(
             title: data['title'] as String? ?? video.title,
             artist: data['artist'] as String? ?? video.artist ?? 'Unknown Artist',
-            tuning: (data['content']['tuning'] as List<dynamic>?)?.cast<String>() ?? ['E', 'A', 'D', 'G', 'B', 'E'],
+            tuning: (data['tuning'] as Map<String, dynamic>?)?.values.toList().cast<String>() ?? ['E', 'A', 'D', 'G', 'B', 'E'],
             difficulty: data['content']['difficulty'] as String? ?? 'intermediate',
           ),
           meta: TabMeta(
@@ -68,48 +70,63 @@ class TabRepository {
   List<Measure> _extractMeasures(Map<String, dynamic> content) {
     try {
       print('📝 Extracting measures from content');
-      final sections = content['sections'] as List<dynamic>;
-      final firstSection = sections[0] as Map<String, dynamic>;
-      final measures = firstSection['measures'] as List<dynamic>;
+      print('📝 Content structure: $content');
+      print('📝 Sections type: ${content['sections'].runtimeType}');
       
-      return measures.map((measureData) {
-        final measure = measureData as Map<String, dynamic>;
+      final sections = content['sections'] as List<dynamic>;
+      print('📝 First section: ${sections[0]}');
+      
+      final firstSection = sections[0] as Map<String, dynamic>;
+      print('📝 Measures in first section: ${firstSection['measures']}');
+      
+      final measuresMap = firstSection['measures'] as Map<String, dynamic>;
+      print('📝 Processing measures: $measuresMap');
+      
+      // Convert map to sorted list based on index
+      final measuresList = measuresMap.entries.map((entry) {
+        print('📝 Processing measure ${entry.key}: ${entry.value}');
+        final measure = entry.value as Map<String, dynamic>;
         return Measure(
           index: measure['index'] as int? ?? 0,
           timeSignature: measure['timeSignature'] as String? ?? '4/4',
-          strings: _extractStrings(measure['strings'] as List<dynamic>),
+          strings: _extractStrings(measure['strings'] as Map<String, dynamic>),
         );
-      }).toList();
+      }).toList()
+        ..sort((a, b) => a.index.compareTo(b.index));
       
+      return measuresList;
     } catch (e) {
       print('❌ Error extracting measures: $e');
+      print('❌ Error location: ${StackTrace.current}');
       return [];
     }
   }
 
-  /// Helper method to extract strings from the nested array structure
-  List<TabString> _extractStrings(List<dynamic> strings) {
+  /// Helper method to extract strings from the nested structure
+  List<TabString> _extractStrings(Map<String, dynamic> strings) {
     try {
       print('📝 Extracting strings: $strings');
-      return strings.map((stringData) {
-        final tabString = stringData as Map<String, dynamic>;
-        final notes = tabString['notes'] as List<dynamic>;
+      return strings.entries.map((stringEntry) {
+        final tabString = stringEntry.value as Map<String, dynamic>;
+        final notes = tabString['notes'] as Map<String, dynamic>;
         
         return TabString(
-          string: tabString['string'] as int? ?? 1,
-          notes: notes.map((noteData) {
-            final note = noteData as Map<String, dynamic>;
+          string: int.parse(stringEntry.key) + 1, // Convert string key to int and adjust for 1-based index
+          notes: notes.entries.map((noteEntry) {
+            final note = noteEntry.value as Map<String, dynamic>;
             return Note(
               fret: note['fret'] as int? ?? 0,
               duration: (note['duration'] as num?)?.toDouble() ?? 1.0,
               position: note['position'] as int? ?? 0,
             );
-          }).toList(),
+          }).toList()
+            ..sort((a, b) => a.position.compareTo(b.position)), // Sort notes by position
         );
-      }).toList();
-      
+      }).toList()
+        ..sort((a, b) => a.string.compareTo(b.string)); // Sort strings by string number
     } catch (e) {
       print('❌ Error extracting strings: $e');
+      print('Stack trace: ${StackTrace.current}');
       return [];
     }
   }

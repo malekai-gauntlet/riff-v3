@@ -1,0 +1,27 @@
+content/
+├── difficulty: "medium"
+├── key: "Am"
+└── sections: [
+    └── 0: {
+        ├── name: "Intro"
+        └── measures: {
+            └── "0": {
+                ├── index: 0
+                ├── lyrics: "There's a lady who's sure all"
+                ├── timeSignature: "4/4"
+                └── strings: {
+                    └── "0": {
+                        └── notes: {
+                            └── "0": {
+                                ├── duration: 1
+                                ├── fret: 5
+                                ├── position: 7
+                                └── string: 1
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+]

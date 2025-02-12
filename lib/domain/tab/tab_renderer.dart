@@ -7,6 +7,7 @@ class TabRenderer {
     print('\n🎸🎸🎸 STARTING TAB RENDER 🎸🎸🎸');
     print('Title: ${template.songInfo.title}');
     print('Content: ${template.content}');
+    print('Number of measures: ${template.content.measures.length}');
     
     final buffer = StringBuffer();
     
@@ -20,18 +21,23 @@ class TabRenderer {
 
     // Process each measure
     var currentSection = '';
+    var measuresInSection = 0;
+    
     for (var i = 0; i < template.content.measures.length; i++) {
       final measure = template.content.measures[i];
+      print('Processing measure $i of ${template.content.measures.length}');
       
       // Add section header if needed
       final section = _getSectionForMeasure(i);
       if (section != currentSection) {
-        // Add extra line break before new section (except for first section)
+        // Add clear section separator
         if (currentSection.isNotEmpty) {
-          buffer.writeln();  // Add extra line break between sections
-          buffer.writeln();  // Add second line break for spacing
+          buffer.writeln();
+          buffer.writeln('  ' + '-' * 40); // Add visual separator
+          buffer.writeln();
         }
         currentSection = section;
+        measuresInSection = 0;
         buffer.writeln('  [$section]');
         buffer.writeln();
       }
@@ -41,11 +47,19 @@ class TabRenderer {
       final indentedMeasure = visualMeasure.split('\n').map((line) => '  $line').join('\n');
       buffer.write(indentedMeasure);
       
-      // Add line breaks between groups of measures
-      if ((i + 1) % 2 == 0) buffer.writeln();
+      // Add line break after measure
+      buffer.writeln();
+      
+      // Add extra spacing every 4 measures within a section
+      measuresInSection++;
+      if (measuresInSection % 4 == 0) {
+        buffer.writeln();
+      }
     }
     
-    return buffer.toString();
+    final result = buffer.toString();
+    print('Final tab length: ${result.split('\n').length} lines');
+    return result;
   }
 
   /// Renders a single measure in visual format
@@ -135,8 +149,9 @@ class TabRenderer {
 
   /// Calculates the visual position for a note
   static int _calculateVisualPosition(int position, int measureWidth) {
-    // Map the position to our fixed width, leaving space for the string label and bars
-    return (position % (measureWidth)) + 1;
+    // Map position to 0-(measureWidth-2) range, then add 1 to get 1-(measureWidth-1)
+    // This ensures the position never exceeds measureWidth-1, preventing buffer overflow
+    return (position % (measureWidth - 1)) + 1;
   }
 
   /// Determines section name based on measure index

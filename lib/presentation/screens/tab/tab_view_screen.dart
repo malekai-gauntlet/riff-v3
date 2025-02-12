@@ -109,8 +109,11 @@ class _TabViewScreenState extends ConsumerState<TabViewScreen> {
                   child: Text(
                     (() {
                       print('\n📝 About to render tab...');
+                      print('Number of measures: ${_tab!.content.measures.length}');
+                      print('First measure strings: ${_tab!.content.measures.first.strings}');
+                      print('Last measure strings: ${_tab!.content.measures.last.strings}');
                       final renderedTab = TabRenderer.renderTab(_tab!);
-                      print('📝 Rendered tab result:');
+                      print('📝 Rendered tab result length: ${renderedTab.split('\n').length} lines');
                       print(renderedTab);
                       return renderedTab;
                     })(),

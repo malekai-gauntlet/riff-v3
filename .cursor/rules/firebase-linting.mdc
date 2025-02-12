@@ -1,0 +1,123 @@
+---
+description: Firebase Linting Standards
+globs: "functions/**/*.{ts,js}"
+---
+# Firebase Cloud Functions Linting Standards
+
+Enforces consistent code style for Firebase Cloud Functions.
+
+<rule>
+name: firebase_linting
+description: Standards for code formatting in Firebase Cloud Functions
+filters:
+  - type: file_extension
+    pattern: "\\.(ts|js)$"
+  - type: path
+    pattern: "functions/"
+
+actions:
+  - type: suggest
+    message: |
+      Firebase Cloud Functions code must follow these formatting rules:
+
+      1. String Quotes:
+         ```typescript
+         // ❌ Wrong
+         import foo from 'some-package';
+         const str = 'hello';
+
+         // ✅ Correct
+         import foo from "some-package";
+         const str = "hello";
+         ```
+
+      2. Trailing Commas:
+         ```typescript
+         // ❌ Wrong
+         const obj = {
+           foo: "bar",
+           baz: "qux"  // Missing trailing comma
+         };
+
+         // ✅ Correct
+         const obj = {
+           foo: "bar",
+           baz: "qux",  // Has trailing comma
+         };
+         ```
+
+      3. Constructor Names:
+         ```typescript
+         // ❌ Wrong
+         const detector = SomeConstructor();
+
+         // ✅ Correct
+         const detector = new SomeConstructor();
+         // OR use lowercase alias
+         const someConstructor = SomeConstructor;
+         const detector = someConstructor();
+         ```
+
+      4. Spacing in Objects/Imports:
+         ```typescript
+         // ❌ Wrong
+         import {foo,bar} from "package";
+         const obj = {foo:"bar"};
+
+         // ✅ Correct
+         import { foo, bar } from "package";
+         const obj = { foo: "bar" };
+         ```
+
+      5. File Endings and Spacing:
+         ```typescript
+         // ❌ Wrong - Trailing spaces after line
+         const myFunction = () => {    
+           
+         // ❌ Wrong - Multiple blank lines between code
+
+         return value;
+         };
+         
+         // ✅ Correct
+         const myFunction = () => {
+           return value;
+         };
+         ```
+         
+         Rules:
+         - NO trailing spaces after any line (most common deployment blocker)
+         - NO multiple blank lines between code
+         - ONE newline at end of file
+         - NO spaces before line endings
+         
+         Common Issues to Watch For:
+         - After comment lines (// comment   )
+         - After import statements
+         - Between function blocks
+         - After opening braces
+         - Visual Studio Code: Enable "Trim Trailing Whitespace" setting
+         
+      6. Constructor Functions (like Pitchfinder.YIN):
+         ```typescript
+         // If you must use a capitalized function without 'new':
+         // eslint-disable-next-line new-cap
+         const detector = CapitalizedFunction();
+         ```
+
+examples:
+  - input: |
+      import {foo} from 'package';
+      const obj = {
+        foo: "bar"
+      }
+    output: |
+      import { foo } from "package";
+      const obj = {
+        foo: "bar",
+      };
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 
