@@ -306,6 +306,198 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                 ),
               ),
               
+              // Email/Password Inputs with animated height
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: _showInputs ? 1.0 : 0.0,
+                child: _showInputs ? AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 40),
+                      // Email Input
+                      TextField(
+                        controller: _emailController,
+                        enabled: !_isLoading,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Email',
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[800]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Display Name Input (only in sign-up mode)
+                      if (_isSignUpMode) ...[
+                        TextField(
+                          controller: _displayNameController,
+                          enabled: !_isLoading,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Display Name',
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey[800]!),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Colors.white),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      
+                      // Password Input
+                      TextField(
+                        controller: _passwordController,
+                        enabled: !_isLoading,
+                        obscureText: true,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Password',
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[800]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Terms of Service Checkbox (only in sign-up mode)
+                      if (_isSignUpMode)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: Checkbox(
+                                  value: _acceptedTerms,
+                                  onChanged: _isLoading ? null : (value) {
+                                    setState(() {
+                                      _acceptedTerms = value ?? false;
+                                    });
+                                  },
+                                  fillColor: MaterialStateProperty.resolveWith<Color>(
+                                    (Set<MaterialState> states) {
+                                      if (states.contains(MaterialState.disabled)) {
+                                        return Colors.grey;
+                                      }
+                                      if (states.contains(MaterialState.selected)) {
+                                        return Colors.white;
+                                      }
+                                      return Colors.transparent;
+                                    },
+                                  ),
+                                  checkColor: Colors.black,
+                                  side: BorderSide(
+                                    color: _isLoading ? Colors.grey : Colors.grey[400]!,
+                                    width: 1.5,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'I agree to the Terms of Service and Privacy Policy',
+                                  style: TextStyle(
+                                    color: _isLoading ? Colors.grey : Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      
+                      // Sign In/Up Button with Loading State
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          _buildLoginButton(
+                            text: _isLoading 
+                              ? (_isSignUpMode ? 'Creating Account...' : 'Signing in...') 
+                              : (_isSignUpMode ? 'Create Account' : 'Sign in'),
+                            icon: _isLoading 
+                              ? Icons.hourglass_empty 
+                              : (_isSignUpMode ? Icons.person_add_outlined : Icons.arrow_forward),
+                            onTap: _isLoading ? null : (_isSignUpMode ? _signUp : _signIn),
+                          ),
+                          if (_isLoading)
+                            Positioned(
+                              right: 16,
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    _isSignUpMode ? Colors.black : Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      
+                      // Toggle text
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: TextButton(
+                          onPressed: _isLoading ? null : _toggleAuthMode,
+                          child: Text(
+                            _isSignUpMode 
+                              ? 'Already have an account? Sign in'
+                              : "Don't have an account? Sign up",
+                            style: TextStyle(
+                              color: _isLoading ? Colors.grey : Colors.grey[400],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                      
+                      // Error Message
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                    ],
+                  ),
+                ) : const SizedBox(),
+              ),
+              
               const Spacer(),
               
               // Initial buttons with slide animations
