@@ -256,6 +256,22 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: _showInputs ? AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+          onPressed: () {
+            setState(() {
+              _showInputs = false;
+              _emailController.clear();
+              _passwordController.clear();
+              _displayNameController.clear();
+              _errorMessage = null;
+            });
+          },
+        ),
+      ) : null,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),

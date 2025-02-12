@@ -2,12 +2,134 @@ import 'package:flutter/material.dart';
 import '../../../auth/infrastructure/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class EditProfileScreen extends StatelessWidget {
+class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends State<EditProfileScreen> {
+  final _authRepository = AuthRepository();
+  String _bio = 'Add bio'; // Add bio state
+  
+  Future<void> _updateName(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final currentName = user.displayName ?? 'Add name';
+    final TextEditingController nameController = TextEditingController(
+      text: currentName == 'Add name' ? '' : currentName
+    );
+    
+    // Show dialog to edit name
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Name'),
+        content: TextField(
+          autofocus: true,
+          controller: nameController,
+          decoration: const InputDecoration(
+            hintText: 'Enter your name',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, nameController.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    // If name was entered and changed
+    if (newName != null && newName.isNotEmpty && newName != currentName) {
+      try {
+        // Update Firebase Auth display name
+        await user.updateDisplayName(newName);
+        // Reload user to get updated data
+        await user.reload();
+        if (mounted) {
+          setState(() {});
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Name updated successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to update name')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _updateBio(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final TextEditingController bioController = TextEditingController(
+      text: _bio == 'Add bio' ? '' : _bio
+    );
+    
+    // Show dialog to edit bio
+    final newBio = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Bio'),
+        content: TextField(
+          autofocus: true,
+          controller: bioController,
+          maxLines: 4, // Larger text field for bio
+          decoration: const InputDecoration(
+            hintText: 'Tell us about yourself',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, bioController.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    // If bio was entered and changed
+    if (newBio != null && newBio != _bio) {
+      try {
+        // Here we'll just update local state for now
+        // TODO: Add Firebase bio storage implementation
+        setState(() {
+          _bio = newBio.isEmpty ? 'Add bio' : newBio;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Bio updated successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to update bio')),
+          );
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final authRepository = AuthRepository();
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
@@ -90,21 +212,13 @@ class EditProfileScreen extends StatelessWidget {
             title: 'Name',
             value: user?.displayName ?? 'Add name',
             showChevron: true,
-          ),
-          _buildProfileField(
-            title: 'Username',
-            value: user?.email?.split('@')[0] ?? 'Add username',
-            showChevron: true,
+            onTap: () => _updateName(context),
           ),
           _buildProfileField(
             title: 'Bio',
-            value: 'Add bio',
+            value: _bio,
             showChevron: true,
-          ),
-          _buildProfileField(
-            title: 'Pronouns',
-            value: 'Add pronouns',
-            showChevron: true,
+            onTap: () => _updateBio(context),
           ),
 
           const SizedBox(height: 32),
