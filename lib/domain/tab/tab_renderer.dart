@@ -28,7 +28,7 @@ class TabRenderer {
       print('Processing measure $i of ${template.content.measures.length}');
       
       // Add section header if needed
-      final section = _getSectionForMeasure(i);
+      final section = _getSectionForMeasure(measure.index);
       if (section != currentSection) {
         // Add clear section separator
         if (currentSection.isNotEmpty) {
@@ -67,13 +67,14 @@ class TabRenderer {
     print('\n🎸 Rendering measure:');
     print('📊 Measure data: $measure');
     
+    // Initialize string buffers with correct string numbers (6 = low E, 1 = high e)
     final stringBuffers = {
-      1: StringBuffer('e|'),
+      1: StringBuffer('e|'),  // High e
       2: StringBuffer('B|'),
       3: StringBuffer('G|'),
       4: StringBuffer('D|'),
       5: StringBuffer('A|'),
-      6: StringBuffer('E|'),
+      6: StringBuffer('E|'),  // Low E
     };
     
     // Initialize with dashes
@@ -88,16 +89,18 @@ class TabRenderer {
     // Place notes in correct positions
     for (var tabString in measure.strings) {
       print('🎵 Processing string ${tabString.string}:');
-      final buffer = stringBuffers[tabString.string]!;
       
       // Sort notes by position to ensure proper order
       final sortedNotes = tabString.notes.toList()
         ..sort((a, b) => a.position.compareTo(b.position));
       
       for (var note in sortedNotes) {
+        // Get the correct string buffer based on the note's string number
+        final buffer = stringBuffers[note.string]!;
+        
         // Scale the position to fit our wider measure
         final position = _calculateVisualPosition(note.position, measureWidth);
-        print('  - Note: fret ${note.fret} at position $position');
+        print('  - Note: fret ${note.fret} at position $position on string ${note.string}');
         _placeNote(buffer, note.fret, position);
       }
     }
@@ -107,7 +110,7 @@ class TabRenderer {
       stringBuffers[string]!.write('|');
     }
     
-    // Combine all strings
+    // Combine all strings in correct order (high e to low E)
     final result = StringBuffer();
     for (var string = 1; string <= 6; string++) {
       result.writeln(stringBuffers[string]!.toString());
@@ -156,8 +159,7 @@ class TabRenderer {
 
   /// Determines section name based on measure index
   static String _getSectionForMeasure(int measureIndex) {
-    if (measureIndex == 0) return 'Intro';
-    return 'Section ${(measureIndex ~/ 4) + 1}';
+    return 'Measure ${measureIndex + 1}';
   }
 
   /// Checks if tuning is standard EADGBE

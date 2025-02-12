@@ -111,19 +111,20 @@ class TabRepository {
         final notes = tabString['notes'] as Map<String, dynamic>;
         
         return TabString(
-          string: int.parse(stringEntry.key) + 1, // Convert string key to int and adjust for 1-based index
+          string: int.parse(stringEntry.key) + 1,
           notes: notes.entries.map((noteEntry) {
             final note = noteEntry.value as Map<String, dynamic>;
             return Note(
               fret: note['fret'] as int? ?? 0,
               duration: (note['duration'] as num?)?.toDouble() ?? 1.0,
               position: note['position'] as int? ?? 0,
+              string: note['string'],
             );
           }).toList()
-            ..sort((a, b) => a.position.compareTo(b.position)), // Sort notes by position
+            ..sort((a, b) => a.position.compareTo(b.position)),
         );
       }).toList()
-        ..sort((a, b) => a.string.compareTo(b.string)); // Sort strings by string number
+        ..sort((a, b) => a.string.compareTo(b.string));
     } catch (e) {
       print('❌ Error extracting strings: $e');
       print('Stack trace: ${StackTrace.current}');

@@ -101,6 +101,7 @@ class Note with _$Note {
     required int fret,
     required double duration,
     required int position,
+    required int string,
     String? technique,
   }) = _Note;
 
@@ -134,6 +135,7 @@ class TabTemplateHelper {
                     fret: 0,
                     duration: 1,
                     position: 0,
+                    string: 1,
                   ),
                 ],
               ),
@@ -179,6 +181,7 @@ class TabTemplateHelper {
               fret: fret,
               duration: duration,
               position: position,
+              string: string,
               technique: technique,
             ),
           ],
@@ -192,6 +195,7 @@ class TabTemplateHelper {
             fret: fret,
             duration: duration,
             position: position,
+            string: string,
             technique: technique,
           ),
         );

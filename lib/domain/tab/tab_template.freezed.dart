@@ -1482,6 +1482,7 @@ mixin _$Note {
   int get fret => throw _privateConstructorUsedError;
   double get duration => throw _privateConstructorUsedError;
   int get position => throw _privateConstructorUsedError;
+  int get string => throw _privateConstructorUsedError;
   String? get technique => throw _privateConstructorUsedError;
 
   /// Serializes this Note to a JSON map.
@@ -1498,7 +1499,8 @@ abstract class $NoteCopyWith<$Res> {
   factory $NoteCopyWith(Note value, $Res Function(Note) then) =
       _$NoteCopyWithImpl<$Res, Note>;
   @useResult
-  $Res call({int fret, double duration, int position, String? technique});
+  $Res call(
+      {int fret, double duration, int position, int string, String? technique});
 }
 
 /// @nodoc
@@ -1519,6 +1521,7 @@ class _$NoteCopyWithImpl<$Res, $Val extends Note>
     Object? fret = null,
     Object? duration = null,
     Object? position = null,
+    Object? string = null,
     Object? technique = freezed,
   }) {
     return _then(_value.copyWith(
@@ -1533,6 +1536,10 @@ class _$NoteCopyWithImpl<$Res, $Val extends Note>
       position: null == position
           ? _value.position
           : position // ignore: cast_nullable_to_non_nullable
+              as int,
+      string: null == string
+          ? _value.string
+          : string // ignore: cast_nullable_to_non_nullable
               as int,
       technique: freezed == technique
           ? _value.technique
@@ -1549,7 +1556,8 @@ abstract class _$$NoteImplCopyWith<$Res> implements $NoteCopyWith<$Res> {
       __$$NoteImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int fret, double duration, int position, String? technique});
+  $Res call(
+      {int fret, double duration, int position, int string, String? technique});
 }
 
 /// @nodoc
@@ -1567,6 +1575,7 @@ class __$$NoteImplCopyWithImpl<$Res>
     Object? fret = null,
     Object? duration = null,
     Object? position = null,
+    Object? string = null,
     Object? technique = freezed,
   }) {
     return _then(_$NoteImpl(
@@ -1581,6 +1590,10 @@ class __$$NoteImplCopyWithImpl<$Res>
       position: null == position
           ? _value.position
           : position // ignore: cast_nullable_to_non_nullable
+              as int,
+      string: null == string
+          ? _value.string
+          : string // ignore: cast_nullable_to_non_nullable
               as int,
       technique: freezed == technique
           ? _value.technique
@@ -1597,6 +1610,7 @@ class _$NoteImpl with DiagnosticableTreeMixin implements _Note {
       {required this.fret,
       required this.duration,
       required this.position,
+      required this.string,
       this.technique});
 
   factory _$NoteImpl.fromJson(Map<String, dynamic> json) =>
@@ -1609,11 +1623,13 @@ class _$NoteImpl with DiagnosticableTreeMixin implements _Note {
   @override
   final int position;
   @override
+  final int string;
+  @override
   final String? technique;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Note(fret: $fret, duration: $duration, position: $position, technique: $technique)';
+    return 'Note(fret: $fret, duration: $duration, position: $position, string: $string, technique: $technique)';
   }
 
   @override
@@ -1624,6 +1640,7 @@ class _$NoteImpl with DiagnosticableTreeMixin implements _Note {
       ..add(DiagnosticsProperty('fret', fret))
       ..add(DiagnosticsProperty('duration', duration))
       ..add(DiagnosticsProperty('position', position))
+      ..add(DiagnosticsProperty('string', string))
       ..add(DiagnosticsProperty('technique', technique));
   }
 
@@ -1637,6 +1654,7 @@ class _$NoteImpl with DiagnosticableTreeMixin implements _Note {
                 other.duration == duration) &&
             (identical(other.position, position) ||
                 other.position == position) &&
+            (identical(other.string, string) || other.string == string) &&
             (identical(other.technique, technique) ||
                 other.technique == technique));
   }
@@ -1644,7 +1662,7 @@ class _$NoteImpl with DiagnosticableTreeMixin implements _Note {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, fret, duration, position, technique);
+      Object.hash(runtimeType, fret, duration, position, string, technique);
 
   /// Create a copy of Note
   /// with the given fields replaced by the non-null parameter values.
@@ -1667,6 +1685,7 @@ abstract class _Note implements Note {
       {required final int fret,
       required final double duration,
       required final int position,
+      required final int string,
       final String? technique}) = _$NoteImpl;
 
   factory _Note.fromJson(Map<String, dynamic> json) = _$NoteImpl.fromJson;
@@ -1677,6 +1696,8 @@ abstract class _Note implements Note {
   double get duration;
   @override
   int get position;
+  @override
+  int get string;
   @override
   String? get technique;
 

@@ -116,6 +116,7 @@ _$NoteImpl _$$NoteImplFromJson(Map<String, dynamic> json) => _$NoteImpl(
       fret: (json['fret'] as num).toInt(),
       duration: (json['duration'] as num).toDouble(),
       position: (json['position'] as num).toInt(),
+      string: (json['string'] as num).toInt(),
       technique: json['technique'] as String?,
     );
 
@@ -124,5 +125,6 @@ Map<String, dynamic> _$$NoteImplToJson(_$NoteImpl instance) =>
       'fret': instance.fret,
       'duration': instance.duration,
       'position': instance.position,
+      'string': instance.string,
       'technique': instance.technique,
     };
