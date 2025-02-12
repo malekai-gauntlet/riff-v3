@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../screens/upload/upload_screen.dart';
 
 class RiffBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -17,12 +18,24 @@ class RiffBottomNavBar extends StatelessWidget {
       backgroundColor: Colors.black,
       selectedItemColor: Colors.white,
       unselectedItemColor: Colors.grey,
-      showSelectedLabels: true,
-      showUnselectedLabels: true,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
       selectedLabelStyle: const TextStyle(fontSize: 11),
       unselectedLabelStyle: const TextStyle(fontSize: 11),
       currentIndex: selectedIndex,
-      onTap: onTap,
+      onTap: (index) {
+        // If upload button is tapped (index 2)
+        if (index == 2) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              fullscreenDialog: true,
+              builder: (context) => const UploadScreen(),
+            ),
+          );
+          return;
+        }
+        onTap(index);
+      },
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home_outlined),
@@ -32,6 +45,11 @@ class RiffBottomNavBar extends StatelessWidget {
         BottomNavigationBarItem(
           icon: Icon(Icons.search),
           label: 'Discover',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.add_box_outlined),
+          activeIcon: Icon(Icons.add_box),
+          label: 'Upload',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.library_music_outlined),

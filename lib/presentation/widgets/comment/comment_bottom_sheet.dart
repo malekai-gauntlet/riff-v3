@@ -59,7 +59,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     try {
       final comments = await _commentRepository.getComments(widget.videoId);
       setState(() {
-        _comments = comments;
+        // Sort comments by creation time (oldest first)
+        _comments = comments..sort((a, b) => a.createdAt.compareTo(b.createdAt));
         _isLoading = false;
       });
     } catch (e) {
@@ -314,9 +315,20 @@ class _CommentItemState extends State<_CommentItem> {
 
   Future<void> _toggleLike() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      print('❌ Cannot like: No user logged in');
+      return;
+    }
 
-    if (_isLiking) return; // Prevent double-tapping
+    if (_isLiking) {
+      print('❌ Already processing a like action');
+      return;
+    }
+
+    print('👍 Starting like toggle for comment: ${widget.comment.id}');
+    print('Current like count: ${widget.comment.likeCount}');
+    print('Current liked users: ${widget.comment.likedByUsers}');
+    print('Current user ID: ${user.uid}');
 
     setState(() {
       _isLiking = true;
@@ -329,6 +341,8 @@ class _CommentItemState extends State<_CommentItem> {
         user.uid,
       );
 
+      print('✅ Like toggle result: ${isLiked ? 'Liked' : 'Unliked'}');
+
       if (mounted) {
         setState(() {
           if (isLiked) {
@@ -336,18 +350,20 @@ class _CommentItemState extends State<_CommentItem> {
               likeCount: widget.comment.likeCount + 1,
               likedByUsers: [...widget.comment.likedByUsers, user.uid],
             );
+            print('📈 Updating comment with new like count: ${updatedComment.likeCount}');
             _updateCommentInParent(updatedComment);
           } else {
             final updatedComment = widget.comment.copyWith(
               likeCount: widget.comment.likeCount - 1,
               likedByUsers: widget.comment.likedByUsers.where((id) => id != user.uid).toList(),
             );
+            print('📉 Updating comment with new like count: ${updatedComment.likeCount}');
             _updateCommentInParent(updatedComment);
           }
         });
       }
     } catch (e) {
-      print('Error toggling like: $e');
+      print('❌ Error toggling like: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to update like')),
