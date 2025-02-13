@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fastor_app_ui_widget/fastor_app_ui_widget.dart'  if (dart.library.html)  'dart:ui' as ui;
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
-import 'dart:ui' as ui;
 
 /// A screen that displays guitar tabs using AlphaTab in an IFrame for web
 class StaticTabViewScreen extends StatefulWidget {

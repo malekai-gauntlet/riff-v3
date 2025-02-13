@@ -70,6 +70,7 @@ dependencies:
 
   # Added from the code block
   just_audio: ^0.9.35
+  fastor_app_ui_widget: ^1.3.61
 
 dev_dependencies:
   flutter_test:
