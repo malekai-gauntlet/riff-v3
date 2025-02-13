@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 import 'dart:ui' as ui;
+import 'dart:js' as js;
 
 /// A screen that displays guitar tabs using AlphaTab in an IFrame for web
 class StaticTabViewScreen extends StatefulWidget {
@@ -24,8 +25,9 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
   @override
   void initState() {
     super.initState();
-    // Register the view factory
-    ui.platformViewRegistry.registerViewFactory(
+    // Register the view factory with the correct web implementation
+    // ignore: undefined_prefixed_name
+    ui.webOnlyInitializePlatformViewRegistry().registerViewFactory(
       viewId,
       (int viewId) {
         final iframe = html.IFrameElement()
@@ -40,10 +42,6 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
   }
 
   String _getHtmlContent() {
-    // Escape any quotes in the title and artist to prevent JS errors
-    final escapedTitle = widget.title.replaceAll("'", "\\'");
-    final escapedArtist = widget.artist.replaceAll("'", "\\'");
-    
     // This returns the complete HTML content with AlphaTab setup
     return '''
 <!DOCTYPE html>
@@ -449,9 +447,9 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
         score.tracks.forEach((track) => {
           trackList.appendChild(createTrackItem(track));
         });
-        // Update song info with the values passed from Dart
-        wrapper.querySelector(".at-song-title").innerText = '$escapedTitle';
-        wrapper.querySelector(".at-song-artist").innerText = '$escapedArtist';
+        // Update song info
+        wrapper.querySelector(".at-song-title").innerText = '${widget.title}';
+        wrapper.querySelector(".at-song-artist").innerText = '${widget.artist}';
       });
       api.renderStarted.on(() => {
         // collect tracks being rendered
