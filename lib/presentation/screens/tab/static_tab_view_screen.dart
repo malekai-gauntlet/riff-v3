@@ -580,6 +580,11 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
         if (e.target.classList.contains("disabled")) {
           return;
         }
+  // Add this block to unlock audio on iOS PWA
+  if (typeof AudioContext !== 'undefined') {
+          const audioContext = new AudioContext();
+          audioContext.resume();
+        }
         api.playPause();
       };
       stop.onclick = (e) => {
