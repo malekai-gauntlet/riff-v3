@@ -29,22 +29,14 @@ class ProfileViewScreen extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.keyboard_arrow_down,
-              color: Colors.black,
-              size: 20,
-            ),
+            // const SizedBox(width: 4),
+            // const Icon(
+            //   Icons.keyboard_arrow_down,
+            //   color: Colors.black,
+            //   size: 20,
+            // ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {
-              // TODO: Implement menu functionality
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
