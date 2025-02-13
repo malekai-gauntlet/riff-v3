@@ -40,6 +40,10 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
   }
 
   String _getHtmlContent() {
+    // Escape any quotes in the title and artist to prevent JS errors
+    final escapedTitle = widget.title.replaceAll("'", "\\'");
+    final escapedArtist = widget.artist.replaceAll("'", "\\'");
+    
     // This returns the complete HTML content with AlphaTab setup
     return '''
 <!DOCTYPE html>
@@ -445,9 +449,9 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
         score.tracks.forEach((track) => {
           trackList.appendChild(createTrackItem(track));
         });
-        // Update song info
-        wrapper.querySelector(".at-song-title").innerText = '${widget.title}';
-        wrapper.querySelector(".at-song-artist").innerText = '${widget.artist}';
+        // Update song info with the values passed from Dart
+        wrapper.querySelector(".at-song-title").innerText = '$escapedTitle';
+        wrapper.querySelector(".at-song-artist").innerText = '$escapedArtist';
       });
       api.renderStarted.on(() => {
         // collect tracks being rendered
