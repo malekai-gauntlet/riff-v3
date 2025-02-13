@@ -25,9 +25,9 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
   @override
   void initState() {
     super.initState();
-    // Register the view factory with the correct web implementation
+    // Register the view factory
     // ignore: undefined_prefixed_name
-    ui.webOnlyInitializePlatformViewRegistry().registerViewFactory(
+    ui.platformViewRegistry.registerViewFactory(
       viewId,
       (int viewId) {
         final iframe = html.IFrameElement()
