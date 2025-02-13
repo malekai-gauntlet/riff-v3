@@ -6,7 +6,7 @@ import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/profile/profile_view_screen.dart';
 import 'presentation/screens/feed/feed_screen.dart';
 import 'presentation/screens/tab/tab_view_screen.dart';
-import 'presentation/screens/test/audio_extraction_test_screen.dart';
+import 'presentation/screens/discover/discover_screen.dart';
 import 'presentation/widgets/navigation/bottom_nav_bar.dart';
 import 'presentation/widgets/navigation/feed_toggle.dart';
 import 'presentation/widgets/video/video_action_buttons.dart';
@@ -117,69 +117,12 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         );
-      case 1: // Discover - Audio Extraction Test
-        return const AudioExtractionTestScreen();
+      case 1: // Discover
+        return const DiscoverScreen();
       case 3: // Profile
         return const ProfileViewScreen();
       default:
-        return Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 20,
-                left: 20,
-                right: 20,
-                bottom: 20,
-              ),
-              child: const Text(
-                'My Tabs',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _buildTabCard(
-                    title: 'Stairway to Heaven',
-                    artist: 'Led Zeppelin',
-                    difficulty: 'Intermediate',
-                    lastModified: '2 days ago',
-                  ),
-                  _buildTabCard(
-                    title: 'Smoke on the Water',
-                    artist: 'Deep Purple',
-                    difficulty: 'Beginner',
-                    lastModified: '1 week ago',
-                  ),
-                  _buildTabCard(
-                    title: 'Iron Man',
-                    artist: 'Black Sabbath',
-                    difficulty: 'Intermediate',
-                    lastModified: '3 days ago',
-                  ),
-                  _buildTabCard(
-                    title: 'Sweet Child O\' Mine',
-                    artist: 'Guns N\' Roses',
-                    difficulty: 'Advanced',
-                    lastModified: '5 days ago',
-                  ),
-                  _buildTabCard(
-                    title: 'Nothing Else Matters',
-                    artist: 'Metallica',
-                    difficulty: 'Intermediate',
-                    lastModified: 'Just now',
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
+        return const SizedBox.shrink();
     }
   }
 
