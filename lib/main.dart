@@ -7,6 +7,7 @@ import 'presentation/screens/profile/profile_view_screen.dart';
 import 'presentation/screens/feed/feed_screen.dart';
 import 'presentation/screens/tab/tab_view_screen.dart';
 import 'presentation/screens/discover/discover_screen.dart';
+import 'presentation/screens/tab/static_tab_view_screen.dart';
 import 'presentation/widgets/navigation/bottom_nav_bar.dart';
 import 'presentation/widgets/navigation/feed_toggle.dart';
 import 'presentation/widgets/video/video_action_buttons.dart';
@@ -118,7 +119,65 @@ class _HomePageState extends State<HomePage> {
           ],
         );
       case 1: // Discover
-        return const DiscoverScreen();
+        // return const DiscoverScreen();  // Comment out the DiscoverScreen
+        return Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 20,
+                left: 20,
+                right: 20,
+                bottom: 20,
+              ),
+              child: const Text(
+                'My Tabs',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _buildTabCard(
+                    title: 'Canon Rock',
+                    artist: 'Jerry C',
+                    difficulty: 'Intermediate',
+                    lastModified: '2 days ago',
+                  ),
+                  _buildTabCard(
+                    title: 'Smoke on the Water',
+                    artist: 'Deep Purple',
+                    difficulty: 'Beginner',
+                    lastModified: '1 week ago',
+                  ),
+                  _buildTabCard(
+                    title: 'Iron Man',
+                    artist: 'Black Sabbath',
+                    difficulty: 'Intermediate',
+                    lastModified: '3 days ago',
+                  ),
+                  _buildTabCard(
+                    title: 'Sweet Child O\' Mine',
+                    artist: 'Guns N\' Roses',
+                    difficulty: 'Advanced',
+                    lastModified: '5 days ago',
+                  ),
+                  _buildTabCard(
+                    title: 'Nothing Else Matters',
+                    artist: 'Metallica',
+                    difficulty: 'Intermediate',
+                    lastModified: 'Just now',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
       case 3: // Profile
         return const ProfileViewScreen();
       default:
@@ -143,7 +202,20 @@ class _HomePageState extends State<HomePage> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // Create a temporary video object for the tab
+            // If it's Canon Rock, show the static tab view
+            if (title == 'Canon Rock') {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => StaticTabViewScreen(
+                    title: title,
+                    artist: artist,
+                  ),
+                ),
+              );
+              return;
+            }
+
+            // For other tabs, use the existing TabViewScreen
             final video = Video(
               id: title.toLowerCase().replaceAll(' ', '-'),
               title: title,
@@ -164,7 +236,7 @@ class _HomePageState extends State<HomePage> {
               MaterialPageRoute(
                 builder: (context) => TabViewScreen(
                   video: video,
-                  isStaticTab: true, // Add this flag to indicate it's a static tab
+                  isStaticTab: true,
                 ),
               ),
             );

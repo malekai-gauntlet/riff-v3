@@ -17,7 +17,7 @@ const db = getFirestore();
 // URL of the Python server that performs pitch detection
 // This server analyzes WAV files and returns frequency data
 const PITCH_DETECTION_SERVER =
-"https://d0fd-2600-1700-291-4b60-b455-5342-b03c-f1aa.ngrok-free.app";
+"https://2d1c-24-153-157-38.ngrok-free.app/";
 
 /**
  * Cloud Function that generates guitar tabs from audio files

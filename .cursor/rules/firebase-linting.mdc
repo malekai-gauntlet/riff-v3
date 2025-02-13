@@ -85,29 +85,69 @@ actions:
          };
          ```
          
-         Rules:
-         - NO trailing spaces after any line (most common deployment blocker)
-         - NO multiple blank lines between code
-         - ONE newline at end of file
-         - NO spaces before line endings
+         CRITICAL RULES:
+         - ‼️ NO trailing spaces after any line (MOST COMMON DEPLOYMENT BLOCKER)
+         - ‼️ ONE newline at end of file (not zero, not multiple)
+         - ‼️ NO spaces before line endings
+         - ‼️ NO multiple blank lines between code blocks
          
-         Common Issues to Watch For:
+         Common Places to Check for Trailing Spaces:
          - After comment lines (// comment   )
          - After import statements
          - Between function blocks
          - After opening braces
-         - Visual Studio Code: Enable "Trim Trailing Whitespace" setting
+         - Inside template literals
          
-      6. Constructor Functions (like Pitchfinder.YIN):
+         VS Code Tips:
+         1. Enable "Trim Trailing Whitespace" setting:
+            - File > Preferences > Settings
+            - Search for "Trim Trailing Whitespace"
+            - Check the box
+         2. Show whitespace characters to spot issues:
+           - View > Render Whitespace
+
+      6. TypeScript Type Safety:
          ```typescript
-         // If you must use a capitalized function without 'new':
+         // ❌ Wrong - Using @ts-ignore
+         // @ts-ignore
+         const result = unsafeOperation();
+
+         // ✅ Correct - Proper type handling
+         const result = unsafeOperation() as ExpectedType;
+         // OR
+         const result = <ExpectedType>unsafeOperation();
+         ```
+
+         CRITICAL RULES:
+         - ‼️ NEVER use @ts-ignore (it suppresses important type checks)
+         - ‼️ Always use proper type assertions or type guards
+         - ‼️ Fix type issues instead of bypassing them
+         
+         Exception Cases:
+         If you absolutely must use @ts-ignore (rare cases):
+         1. Document WHY it's necessary
+         2. What the actual types are
+         3. Why it's safe to ignore
+         Example:
+         ```typescript
+         // @ts-ignore: Library 'legacy-module' has incorrect types
+         // Actual type is Buffer, but types show Uint8Array
+         const data = legacyFunction();
+         ```
+
+      7. Constructor Functions (like Pitchfinder.YIN):
+         ```typescript
+         // ❌ Wrong - Direct usage of capitalized function
+         const detector = YIN();
+
+         // ✅ Correct - Using eslint disable comment
          // eslint-disable-next-line new-cap
-         const detector = CapitalizedFunction();
+         const detector = YIN();
          ```
 
 examples:
   - input: |
-      import {foo} from 'package';
+      import {foo} from 'package';   
       const obj = {
         foo: "bar"
       }
@@ -118,6 +158,6 @@ examples:
       };
 
 metadata:
-  priority: high
-  version: 1.0
+  priority: critical
+  version: 1.1
 </rule> 
