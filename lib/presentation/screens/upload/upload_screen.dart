@@ -70,7 +70,12 @@ class _UploadScreenState extends State<UploadScreen> {
       print('📄 Document ID: ${uploadResult['documentId']}');
 
       if (mounted) {
-        Navigator.of(context).pop();
+        // Get the newly created video
+        final newVideo = await _uploadService.getVideo(uploadResult['documentId']!);
+        
+        // Pop back to previous screen with the new video
+        Navigator.of(context).pop(newVideo);
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Video uploaded! Gathering guitar resources...'),

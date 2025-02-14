@@ -264,23 +264,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         horizontal: 16,
                         vertical: 8,
                       ),
-                      suffixIcon: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.alternate_email),
-                            onPressed: () {
-                              // TODO: Implement @ mentions
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.emoji_emotions_outlined),
-                            onPressed: () {
-                              // TODO: Implement emoji picker
-                            },
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ),

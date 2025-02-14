@@ -33,6 +33,8 @@ class _VideoActionButtonsState extends State<VideoActionButtons> {
   bool? _optimisticIsLiked;
   // Add optimistic like count
   int? _optimisticLikeCount;
+  // Add optimistic save count
+  int? _optimisticSaveCount;
   // Add comment count
   int _commentCount = 0;
   
@@ -59,9 +61,9 @@ class _VideoActionButtonsState extends State<VideoActionButtons> {
     return _optimisticLikeCount ?? widget.video.likeCount;
   }
 
-  // Get current save count
+  // Get current save count with optimistic value
   int get _saveCount {
-    return widget.video.savedByUsers.length;
+    return _optimisticSaveCount ?? widget.video.savedByUsers.length;
   }
 
   @override
@@ -198,35 +200,41 @@ class _VideoActionButtonsState extends State<VideoActionButtons> {
                 return;
               }
               
-              // Optimistically update UI
+              // Optimistically update UI including save count
               setState(() {
                 _optimisticIsSaved = !_isSaved;
+                _optimisticSaveCount = _saveCount + (_isSaved ? 1 : -1);
               });
               
               try {
                 final isSaved = await _videoRepository.toggleSaveVideo(widget.video.id, userId);
                 
                 // Update local state with server response
-                setState(() {
-                  _optimisticIsSaved = isSaved;
-                });
-                
-                // Show feedback
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(isSaved ? 'Video saved' : 'Video unsaved'),
-                    duration: const Duration(seconds: 1),
-                  ),
-                );
+                if (mounted) {
+                  setState(() {
+                    _optimisticIsSaved = isSaved;
+                  });
+                  
+                  // Show feedback
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(isSaved ? 'Video saved' : 'Video unsaved'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                }
               } catch (e) {
                 // Revert optimistic update on error
-                setState(() {
-                  _optimisticIsSaved = null;
-                });
-                
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Error saving video')),
-                );
+                if (mounted) {
+                  setState(() {
+                    _optimisticIsSaved = null;
+                    _optimisticSaveCount = null;
+                  });
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Error saving video')),
+                  );
+                }
               }
             },
           ),

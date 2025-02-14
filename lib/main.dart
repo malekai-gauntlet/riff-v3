@@ -99,14 +99,27 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   int _selectedFeedIndex = 1; // Default to "For You"
+  Video? _newlyUploadedVideo; // Add state for new video
 
   // Updated method to get the current screen based on selected index
   Widget _getCurrentScreen() {
     switch (_selectedIndex) {
       case 0: // Home
+        // Create a local variable to hold the video
+        final videoToShow = _newlyUploadedVideo;
+        // Reset the state
+        if (_newlyUploadedVideo != null) {
+          Future.microtask(() {
+            setState(() => _newlyUploadedVideo = null);
+          });
+        }
         return Stack(
           children: [
-            FeedScreen(selectedGenre: _selectedFeedIndex),
+            FeedScreen(
+              selectedGenre: _selectedFeedIndex,
+              initialVideo: videoToShow,
+              isNewUpload: videoToShow != null,
+            ),
             Positioned(
               top: MediaQuery.of(context).padding.top + 10,
               left: 0,
@@ -339,6 +352,12 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: RiffBottomNavBar(
         selectedIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
+        onVideoUploaded: (video) {
+          setState(() {
+            _newlyUploadedVideo = video;
+            _selectedFeedIndex = 1; // Switch to "For You" feed
+          });
+        },
       ),
     );
   }

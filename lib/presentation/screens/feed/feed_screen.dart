@@ -24,10 +24,14 @@ class FeedScreen extends StatefulWidget {
   static bool hasShownUnmuteTooltip = false;
   
   final int selectedGenre;
+  final Video? initialVideo;  // Add initialVideo parameter
+  final bool isNewUpload;    // Add flag to track if it's a fresh upload
   
   const FeedScreen({
     super.key,
     required this.selectedGenre,
+    this.initialVideo,       // Add to constructor
+    this.isNewUpload = false, // Default to false
   });
 
   @override
@@ -151,6 +155,15 @@ class _FeedScreenState extends State<FeedScreen> {
     try {
       final videos = await _videoRepository.getVideoFeed();
       var genreFilteredVideos = videos;
+      
+      // If this is a fresh upload and we have an initial video, insert it at the beginning
+      if (widget.isNewUpload && widget.initialVideo != null) {
+        print('📱 Adding newly uploaded video to feed start');
+        // Remove the video if it exists in the list to avoid duplicates
+        genreFilteredVideos.removeWhere((v) => v.id == widget.initialVideo!.id);
+        // Add it to the beginning
+        genreFilteredVideos.insert(0, widget.initialVideo!);
+      }
       
       switch (widget.selectedGenre) {
         case 2:

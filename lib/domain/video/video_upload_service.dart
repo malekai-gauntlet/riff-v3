@@ -4,12 +4,15 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'video_model.dart';
+import 'video_repository.dart';
 
 class VideoUploadService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
+  final VideoRepository _videoRepository = VideoRepository();
 
   Future<bool> checkVideoDuration(html.File file) async {
     // Create a temporary URL for the file
@@ -153,5 +156,10 @@ class VideoUploadService {
       print('Error uploading video: $e');
       rethrow;
     }
+  }
+
+  /// Get a video by its document ID
+  Future<Video?> getVideo(String videoId) async {
+    return _videoRepository.getVideo(videoId);
   }
 } 
