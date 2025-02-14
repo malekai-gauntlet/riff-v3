@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../../domain/video/video_model.dart';
+import '../../widgets/video/video_action_buttons.dart';
 
 class SavedVideoViewScreen extends StatefulWidget {
   final Video initialVideo;
@@ -124,6 +125,57 @@ class _SavedVideoViewScreenState extends State<SavedVideoViewScreen> {
                 size: 28,
               ),
               onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+
+          // Video Action Buttons (right side)
+          Positioned(
+            right: 8,
+            bottom: 0,
+            child: VideoActionButtons(
+              video: widget.savedVideos[_currentPage],
+              controller: _controllers[widget.savedVideos[_currentPage].id],
+            ),
+          ),
+
+          // Video Info (bottom)
+          Positioned(
+            left: 0,
+            right: 70, // Make room for action buttons
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.7),
+                  ],
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.savedVideos[_currentPage].title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.savedVideos[_currentPage].description,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
