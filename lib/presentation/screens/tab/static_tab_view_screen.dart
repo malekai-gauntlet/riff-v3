@@ -576,12 +576,32 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
         ".at-controls .at-player-play-pause"
       );
       const stop = wrapper.querySelector(".at-controls .at-player-stop");
-      playPause.onclick = (e) => {
+      let hasInitializedVoiceCommands = false;  // Track if we've initialized voice commands
+
+      playPause.onclick = async (e) => {
         if (e.target.classList.contains("disabled")) {
           return;
         }
-  // Add this block to unlock audio on iOS PWA
-  if (typeof AudioContext !== 'undefined') {
+
+        // Initialize voice commands on first play button click
+        if (!hasInitializedVoiceCommands) {
+          console.log('[Voice] Initializing voice commands from play button');
+          try {
+            // Request microphone permission explicitly
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop());
+            
+            // Initialize voice commands
+            await initializeSpeechRecognition();
+            hasInitializedVoiceCommands = true;
+          } catch (error) {
+            console.error('[Voice] Error initializing from play button:', error);
+            // Continue with playback even if voice initialization fails
+          }
+        }
+
+        // Add this block to unlock audio on iOS PWA
+        if (typeof AudioContext !== 'undefined') {
           const audioContext = new AudioContext();
           audioContext.resume();
         }
