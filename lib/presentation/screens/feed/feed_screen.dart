@@ -742,15 +742,32 @@ class _VideoItemState extends State<_VideoItem> with SingleTickerProviderStateMi
             ),
           ),
 
+          // Commented out Tab Button temporarily
+          /*
           // Tab Button (bottom left)
           Positioned(
             left: 16,
             bottom: 90, // Position above the title/description
-            child: FutureBuilder<bool>(
-              future: TabRepository().getTabForVideo(widget.video).then((tab) => tab != null),
+            child: FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance.collection('videos').doc(widget.video.id).get(),
               builder: (context, snapshot) {
-                final hasTab = snapshot.data ?? false;
+                // Default to hidden if no data
+                if (!snapshot.hasData) return const SizedBox.shrink();
                 
+                final data = snapshot.data!.data() as Map<String, dynamic>?;
+                if (data == null) return const SizedBox.shrink();
+                
+                // Check if there's a Guitar Pro tab
+                final hasGuitarProTab = data.containsKey('guitarprourl') && 
+                                      data['guitarprourl'] != null && 
+                                      data['guitarprourl'].toString().isNotEmpty;
+                
+                // Hide button if there's a Guitar Pro tab
+                if (hasGuitarProTab) {
+                  return const SizedBox.shrink();
+                }
+                
+                // If we get here, we're certain there's no Guitar Pro tab
                 return Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
@@ -760,83 +777,65 @@ class _VideoItemState extends State<_VideoItem> with SingleTickerProviderStateMi
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () async {
-                        if (hasTab) {
-                          // If tab exists, navigate to view screen
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => TabViewScreen(
-                                video: widget.video,
-                              ),
-                            ),
-                          );
-                        } else {
-                          // If no tab exists, start generation
-                          try {
-                            // First, get the video document to fetch wavurl
-                            final videoDoc = await FirebaseFirestore.instance
-                                .collection('videos')
-                                .doc(widget.video.id)
-                                .get();
-
-                            if (!videoDoc.exists || !videoDoc.data()!.containsKey('wavurl')) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('No WAV file available for this video')),
-                              );
-                              return;
-                            }
-
-                            final wavurl = videoDoc.data()!['wavurl'] as String;
-
-                            // Show loading indicator
+                        try {
+                          if (!data.containsKey('wavurl')) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Generating tab...')),
+                              const SnackBar(content: Text('No WAV file available for this video')),
                             );
+                            return;
+                          }
 
-                            // Ensure user is authenticated
-                            final user = FirebaseAuth.instance.currentUser;
-                            if (user == null) {
-                              await FirebaseAuth.instance.signInAnonymously();
-                            }
+                          final wavurl = data['wavurl'] as String;
 
-                            // Create a new document in ai_tabs collection
-                            final aiTabsDoc = await FirebaseFirestore.instance
-                                .collection('ai_tabs')
-                                .add({
-                              'video_id': widget.video.id,
-                              'created_at': FieldValue.serverTimestamp(),
-                            });
+                          // Show loading indicator
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Generating tab...')),
+                          );
 
-                            // Call the cloud function to generate tab
-                            final result = await FirebaseFunctions.instanceFor(region: 'us-central1')
-                                .httpsCallable('generateTabFromAudio')
-                                .call({
-                              'wavurl': wavurl,  // Use the wavurl from Firestore
-                              'aiTabsDocumentId': aiTabsDoc.id,
-                            });
+                          // Ensure user is authenticated
+                          final user = FirebaseAuth.instance.currentUser;
+                          if (user == null) {
+                            await FirebaseAuth.instance.signInAnonymously();
+                          }
 
-                            // If successful, navigate to view screen
-                            if (result.data['success'] == true) {
-                              // Hide loading indicator
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Tab generated successfully!')),
-                              );
-                              
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => TabViewScreen(
-                                    video: widget.video,
-                                  ),
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            // Hide loading indicator and show error
+                          // Create a new document in ai_tabs collection
+                          final aiTabsDoc = await FirebaseFirestore.instance
+                              .collection('ai_tabs')
+                              .add({
+                            'video_id': widget.video.id,
+                            'created_at': FieldValue.serverTimestamp(),
+                          });
+
+                          // Call the cloud function to generate tab
+                          final result = await FirebaseFunctions.instanceFor(region: 'us-central1')
+                              .httpsCallable('generateTabFromAudio')
+                              .call({
+                            'wavurl': wavurl,
+                            'aiTabsDocumentId': aiTabsDoc.id,
+                          });
+
+                          // If successful, navigate to view screen
+                          if (result.data['success'] == true) {
+                            // Hide loading indicator
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to generate tab: $e')),
+                              const SnackBar(content: Text('Tab generated successfully!')),
+                            );
+                            
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => TabViewScreen(
+                                  video: widget.video,
+                                ),
+                              ),
                             );
                           }
+                        } catch (e) {
+                          // Hide loading indicator and show error
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to generate tab: $e')),
+                          );
                         }
                       },
                       borderRadius: BorderRadius.circular(8),
@@ -849,14 +848,14 @@ class _VideoItemState extends State<_VideoItem> with SingleTickerProviderStateMi
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              hasTab ? Icons.music_note : Icons.add_circle_outline,
+                              Icons.add_circle_outline,
                               color: Colors.white,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              hasTab ? 'View Tab' : 'Generate Tab',
-                              style: const TextStyle(
+                            const Text(
+                              'Generate Tab',
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -871,6 +870,7 @@ class _VideoItemState extends State<_VideoItem> with SingleTickerProviderStateMi
               },
             ),
           ),
+          */
             
           // Unmute hint tooltip - moved out of action buttons Stack
           Positioned(

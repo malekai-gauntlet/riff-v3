@@ -8,6 +8,9 @@ import '../comment/comment_bottom_sheet.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../domain/comment/comment_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import '../../screens/tab/tab_view_screen.dart';
 
 // Convert to StatefulWidget for local state management
 class VideoActionButtons extends StatefulWidget {
@@ -43,6 +46,164 @@ class _VideoActionButtonsState extends State<VideoActionButtons> {
   
   // Get current user ID
   String? get _currentUserId => FirebaseAuth.instance.currentUser?.uid;
+
+  // Show the no tabs bottom sheet
+  void _showNoTabsBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              "This riff doesn't have tabs online.",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close bottom sheet
+                _startTabGeneration();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Create AI Generated Tabs',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Function to start tab generation
+  Future<void> _startTabGeneration() async {
+    try {
+      // Get the video document to check for wavurl
+      final videoDoc = await FirebaseFirestore.instance
+          .collection('videos')
+          .doc(widget.video.id)
+          .get();
+
+      final data = videoDoc.data();
+      if (data == null || !data.containsKey('wavurl')) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No WAV file available for this video')),
+          );
+        }
+        return;
+      }
+
+      final wavurl = data['wavurl'] as String;
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Generating tab...')),
+        );
+      }
+
+      // Ensure user is authenticated
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        await FirebaseAuth.instance.signInAnonymously();
+      }
+
+      // Create a new document in ai_tabs collection
+      final aiTabsDoc = await FirebaseFirestore.instance
+          .collection('ai_tabs')
+          .add({
+        'video_id': widget.video.id,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
+      // Call the cloud function to generate tab
+      final functions = FirebaseFunctions.instance;
+      final result = await functions
+          .httpsCallable('generateTabFromAudio')
+          .call({
+        'wavurl': wavurl,
+        'aiTabsDocumentId': aiTabsDoc.id,
+      });
+
+      if (result.data['success'] == true && mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tab generated successfully!')),
+        );
+        
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => TabViewScreen(
+              video: widget.video,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to generate tab: $e')),
+        );
+      }
+    }
+  }
+
+  // Check if video has any type of tabs (Guitar Pro or AI)
+  Future<bool> _hasAnyTabs() async {
+    try {
+      // Check for Guitar Pro tabs
+      final videoDoc = await FirebaseFirestore.instance
+          .collection('videos')
+          .doc(widget.video.id)
+          .get();
+      
+      if (videoDoc.exists) {
+        final data = videoDoc.data();
+        if (data != null && 
+            data.containsKey('guitarprourl') && 
+            data['guitarprourl'] != null && 
+            data['guitarprourl'].toString().isNotEmpty) {
+          return true;
+        }
+      }
+
+      // Check for AI-generated tabs
+      final aiTabsQuery = await FirebaseFirestore.instance
+          .collection('ai_tabs')
+          .where('video_id', isEqualTo: widget.video.id)
+          .limit(1)
+          .get();
+
+      return aiTabsQuery.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking for tabs: $e');
+      return false;
+    }
+  }
 
   // Check if video is saved by current user, using optimistic value if available
   bool get _isSaved {
@@ -296,20 +457,32 @@ class _VideoActionButtonsState extends State<VideoActionButtons> {
               ),
             ),
             label: 'Tutorial',
-            onTap: () {
+            onTap: () async {
               // Pause the video if controller exists
               widget.controller?.pause();
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => TutorialScreen(
-                    video: widget.video,
-                    onClose: () {
-                      // Resume video when returning from tutorial screen
-                      widget.controller?.play();
-                    },
+              
+              // Check if the video has any tabs
+              final hasTabs = await _hasAnyTabs();
+              
+              if (!mounted) return;
+              
+              if (hasTabs) {
+                // If tabs exist, show tutorial screen
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => TutorialScreen(
+                      video: widget.video,
+                      onClose: () {
+                        // Resume video when returning from tutorial screen
+                        widget.controller?.play();
+                      },
+                    ),
                   ),
-                ),
-              );
+                );
+              } else {
+                // If no tabs exist, show bottom sheet
+                _showNoTabsBottomSheet();
+              }
             },
           ),
           const SizedBox(height: 8), // Reduced spacing before speed control
