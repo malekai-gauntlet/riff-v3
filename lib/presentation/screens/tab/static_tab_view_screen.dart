@@ -650,6 +650,173 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
         const speedLevel = parseFloat(speed.value);
         api.playbackSpeed = speedLevel;
       };
+
+      // Voice command setup with mobile PWA support
+      let recognition = null;
+      let isRecognitionActive = false;
+      
+      // Function to show status messages to user
+      function showVoiceStatus(message, isError = false) {
+        console.log('[Voice Status]', message); // Add logging for all status messages
+        const statusDiv = document.createElement('div');
+        statusDiv.style.position = 'fixed';
+        statusDiv.style.bottom = '60px';
+        statusDiv.style.left = '50%';
+        statusDiv.style.transform = 'translateX(-50%)';
+        statusDiv.style.backgroundColor = isError ? '#ff4444' : '#436d9d';
+        statusDiv.style.color = 'white';
+        statusDiv.style.padding = '8px 16px';
+        statusDiv.style.borderRadius = '20px';
+        statusDiv.style.zIndex = '9999';
+        statusDiv.textContent = message;
+        document.body.appendChild(statusDiv);
+        setTimeout(() => statusDiv.remove(), 3000);
+      }
+
+      // Initialize speech recognition with proper error handling
+      async function initializeSpeechRecognition() {
+        console.log('[Voice Init] Starting initialization');
+        if (!('webkitSpeechRecognition' in window)) {
+          console.error('[Voice Init] Speech recognition not supported');
+          showVoiceStatus('Voice commands not supported in this browser', true);
+          return;
+        }
+
+        try {
+          console.log('[Voice Init] Requesting microphone permission');
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach(track => track.stop());
+          console.log('[Voice Init] Microphone permission granted');
+          
+          recognition = new webkitSpeechRecognition();
+          // Make recognition more responsive
+          recognition.continuous = false;  // Process commands faster
+          recognition.interimResults = true;  // Get faster results
+          recognition.maxAlternatives = 1;  // Reduce processing overhead
+          
+          recognition.onstart = () => {
+            console.log('[Voice] Recognition started');
+            isRecognitionActive = true;
+          };
+          
+          recognition.onerror = (event) => {
+            console.error('[Voice Error]', event.error);
+            if (event.error === 'not-allowed') {
+              showVoiceStatus('Microphone permission denied', true);
+            } else {
+              showVoiceStatus('Voice recognition error: ' + event.error, true);
+            }
+            isRecognitionActive = false;
+            // Immediately restart recognition
+            if (!isRecognitionActive) recognition.start();
+          };
+          
+          recognition.onend = () => {
+            console.log('[Voice] Recognition ended');
+            isRecognitionActive = false;
+            // Immediately restart recognition
+            recognition.start();
+          };
+          
+          recognition.onresult = (event) => {
+            // Process interim results for faster response
+            const result = event.results[event.results.length - 1];
+            if (result.isFinal || result[0].confidence > 0.7) {  // Accept high confidence interim results
+              const command = result[0].transcript.toLowerCase().trim();
+              console.log('[Voice Command] Received:', command);
+              
+              // Handle "start over" command regardless of player state
+              if (command.includes('start over') || command.includes('restart')) {
+                console.log('[Voice] Executing start over');
+                api.stop();
+                // Add a small delay before playing to ensure the stop command is fully processed
+                setTimeout(() => {
+                  console.log('[Voice] Auto-playing after start over');
+                  api.play();
+                  showVoiceStatus('Starting over');
+                }, 100);
+                return;
+              }
+              
+              // When playing, listen for "pause"
+              if (api.playerState === alphaTab.synth.PlayerState.Playing) {
+                if (command.includes('pause') || command.includes('stop')) {
+                  console.log('[Voice] Executing pause');
+                  api.pause();
+                  showVoiceStatus('Paused');
+                }
+              }
+              // When not playing, listen for "play"
+              else {
+                if (command.includes('play') || command.includes('start')) {
+                  console.log('[Voice] Executing play');
+                  try {
+                    api.play();
+                    showVoiceStatus('Playing');
+                  } catch (error) {
+                    console.error('[Voice] Play error:', error);
+                  }
+                }
+              }
+            }
+          };
+
+          // Add voice command indicator that shows current valid commands
+          const controlsRight = wrapper.querySelector('.at-controls-right');
+          const voiceIndicator = document.createElement('div');
+          voiceIndicator.style.marginLeft = '10px';
+          voiceIndicator.style.display = 'flex';
+          voiceIndicator.style.alignItems = 'center';
+          voiceIndicator.innerHTML = '<i class="fas fa-microphone"></i><span style="margin-left: 5px; font-size: 12px">Say "pause" or "start over"</span>';
+          voiceIndicator.title = 'Voice commands enabled';
+          controlsRight.appendChild(voiceIndicator);
+
+          // Update the voice indicator based on player state
+          api.playerStateChanged.on((e) => {
+            const textSpan = voiceIndicator.querySelector('span');
+            if (e.state === alphaTab.synth.PlayerState.Playing) {
+              textSpan.textContent = 'Say "pause" or "start over"';
+            } else {
+              textSpan.textContent = 'Say "play" or "start over"';
+            }
+          });
+
+          // Start recognition immediately
+          recognition.start();
+
+          console.log('[Voice Init] Setup complete');
+          
+        } catch (error) {
+          console.error('[Voice Init] Error:', error);
+          showVoiceStatus('Error initializing voice commands: ' + error.message, true);
+        }
+      }
+
+      // Initialize voice commands when player is ready
+      api.playerReady.on(() => {
+        console.log('[Player] Ready - initializing voice commands');
+        initializeSpeechRecognition();
+      });
+      
+      // Handle player state changes
+      api.playerStateChanged.on((e) => {
+        console.log('[Player] State changed:', e.state);
+        if (!recognition) {
+          console.log('[Voice] Recognition not initialized, skipping state change handling');
+          return;
+        }
+        
+        if (e.state === alphaTab.synth.PlayerState.Playing) {
+          if (!isRecognitionActive) {
+            console.log('[Voice] Starting recognition due to player state change');
+            recognition.start();
+          }
+        } else {
+          console.log('[Voice] Stopping recognition due to player state change');
+          recognition.stop();
+        }
+      });
+      
     </script>
 </body>
 </html>
