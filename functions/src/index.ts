@@ -4,6 +4,7 @@ import {getFirestore} from "firebase-admin/firestore";
 import * as admin from "firebase-admin";
 import axios from "axios";
 import {frequencyToNote} from "./utils/frequency_converter";
+import { gatherGuitarResources } from './guitar-resources';
 
 // Initialize Firebase Admin SDK if not already initialized
 // This is required for Firestore access
@@ -145,3 +146,6 @@ export const generateTabFromAudio = onCall(
     }
   }
 );
+
+// Export functions
+export { gatherGuitarResources };

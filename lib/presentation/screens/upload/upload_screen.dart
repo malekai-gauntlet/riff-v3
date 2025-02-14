@@ -13,9 +13,7 @@ class _UploadScreenState extends State<UploadScreen> {
   final VideoUploadService _uploadService = VideoUploadService();
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
   final _artistController = TextEditingController();
-  final _tagsController = TextEditingController();
   
   bool _isUploading = false;
   double _uploadProgress = 0;
@@ -25,9 +23,7 @@ class _UploadScreenState extends State<UploadScreen> {
   @override
   void dispose() {
     _titleController.dispose();
-    _descriptionController.dispose();
     _artistController.dispose();
-    _tagsController.dispose();
     super.dispose();
   }
 
@@ -61,16 +57,22 @@ class _UploadScreenState extends State<UploadScreen> {
         onProgress: (progress) {
           setState(() => _uploadProgress = progress);
         },
+        title: _titleController.text,
+        artist: _artistController.text.isNotEmpty ? _artistController.text : null,
       );
 
       print('✅ Video uploaded successfully!');
       print('📍 Storage path: ${uploadResult['storagePath']}');
       print('🔗 Download URL: ${uploadResult['downloadUrl']}');
+      print('📄 Document ID: ${uploadResult['documentId']}');
 
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Video uploaded successfully!')),
+          const SnackBar(
+            content: Text('Video uploaded! Gathering guitar resources...'),
+            duration: Duration(seconds: 4),
+          ),
         );
       }
     } catch (e) {
@@ -176,7 +178,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Form Fields
+                // Title Field
                 const Text(
                   'Title',
                   style: TextStyle(
@@ -208,38 +210,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                const Text(
-                  'Description',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _descriptionController,
-                  style: const TextStyle(color: Colors.white),
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'Enter video description',
-                    hintStyle: TextStyle(color: Colors.grey[600]),
-                    filled: true,
-                    fillColor: Colors.grey[900],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-
+                // Artist Field
                 const Text(
                   'Artist (Optional)',
                   style: TextStyle(
@@ -264,31 +235,6 @@ class _UploadScreenState extends State<UploadScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                const Text(
-                  'Tags (Optional)',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _tagsController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Enter tags separated by commas',
-                    hintStyle: TextStyle(color: Colors.grey[600]),
-                    filled: true,
-                    fillColor: Colors.grey[900],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
 
                 if (_errorMessage != null) ...[
                   Text(
