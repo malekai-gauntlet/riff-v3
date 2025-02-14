@@ -22,15 +22,70 @@ class _ProfileVideoGridState extends State<ProfileVideoGrid> {
   
   // Store videos
   List<Video> _savedVideos = [];
+  List<Video> _creatorVideos = []; // Added for creator videos
   bool _isLoading = false;
   String? _error;
   
   @override
   void initState() {
     super.initState();
-    _loadSavedVideos();
+    _loadInitialData();
   }
   
+  // Load initial data based on selected tab
+  Future<void> _loadInitialData() async {
+    if (_selectedTabIndex == 0) {
+      await _loadCreatorVideos();
+    } else {
+      await _loadSavedVideos();
+    }
+  }
+
+  // Load videos created by current user
+  Future<void> _loadCreatorVideos() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    print('\n🎥 Loading Creator Videos:');
+    print('👤 User ID: $userId');
+    
+    if (userId == null) {
+      print('❌ No user ID available - user might not be logged in');
+      return;
+    }
+    
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    
+    try {
+      print('📥 Fetching creator videos from repository...');
+      final videos = await _videoRepository.getCreatorVideos(userId);
+      print('✅ Fetch complete:');
+      print('📊 Number of videos: ${videos.length}');
+      if (videos.isNotEmpty) {
+        print('🖼️ First video details:');
+        print('   - ID: ${videos[0].id}');
+        print('   - Title: ${videos[0].title}');
+        print('   - Thumbnail URL: ${videos[0].thumbnailUrl}');
+      }
+      
+      setState(() {
+        _creatorVideos = videos;
+        _isLoading = false;
+      });
+      print('💾 State updated with ${_creatorVideos.length} videos');
+      
+    } catch (e, stackTrace) {
+      print('❌ Error loading creator videos:');
+      print('   Error: $e');
+      print('   Stack trace: $stackTrace');
+      setState(() {
+        _error = 'Failed to load your videos';
+        _isLoading = false;
+      });
+    }
+  }
+
   // Load saved videos for current user
   Future<void> _loadSavedVideos() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -94,7 +149,7 @@ class _ProfileVideoGridState extends State<ProfileVideoGrid> {
         // Video grid
         Expanded(
           child: _selectedTabIndex == 0
-              ? _buildTutorialsGrid()
+              ? _buildCreatorVideosGrid()
               : _buildSavedRecordingsGrid(),
         ),
       ],
@@ -186,12 +241,88 @@ class _ProfileVideoGridState extends State<ProfileVideoGrid> {
     );
   }
   
-  Widget _buildTutorialsGrid() {
-    // TODO: Implement tutorials grid
-    return const Center(
-      child: Text(
-        'Tutorials coming soon!',
-        style: TextStyle(color: Colors.black54),
+  Widget _buildCreatorVideosGrid() {
+    print('\n🎯 Building Creator Videos Grid:');
+    print('📊 Loading state: $_isLoading');
+    print('❌ Error state: $_error');
+    print('🎥 Number of videos: ${_creatorVideos.length}');
+    
+    if (_isLoading) {
+      print('⏳ Showing loading indicator');
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    if (_error != null) {
+      print('❌ Showing error state: $_error');
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_error!, style: const TextStyle(color: Colors.black54)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadCreatorVideos,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    if (_creatorVideos.isEmpty) {
+      print('📭 No creator videos to display');
+      return const Center(
+        child: Text(
+          'No videos uploaded yet',
+          style: TextStyle(color: Colors.black54),
+        ),
+      );
+    }
+    
+    print('🎬 Building grid with ${_creatorVideos.length} videos');
+    return RefreshIndicator(
+      onRefresh: _loadCreatorVideos,
+      child: GridView.builder(
+        padding: const EdgeInsets.all(1),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          childAspectRatio: 1 / 1.5,
+          crossAxisSpacing: 1,
+          mainAxisSpacing: 1,
+        ),
+        itemCount: _creatorVideos.length,
+        itemBuilder: (context, index) {
+          final video = _creatorVideos[index];
+          return VideoThumbnail(
+            thumbnailUrl: video.thumbnailUrl,
+            likeCount: video.likeCount,
+            onTap: () {
+              print('\n🎯 Grid Item Tapped:');
+              print('📺 Video ID: ${video.id}');
+              print('📝 Video Title: ${video.title}');
+              print('🔢 Index: $index');
+              print('📱 Starting navigation to SavedVideoViewScreen...');
+              
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) {
+                    print('🏗️ Building SavedVideoViewScreen:');
+                    print('🎥 Initial Video: ${video.id}');
+                    print('📊 Total Videos: ${_creatorVideos.length}');
+                    return SavedVideoViewScreen(
+                      initialVideo: video,
+                      savedVideos: _creatorVideos,
+                      initialIndex: index,
+                    );
+                  },
+                ),
+              ).then((_) {
+                print('↩️ Returned from SavedVideoViewScreen');
+                _loadCreatorVideos(); // Refresh after returning
+              });
+            },
+          );
+        },
       ),
     );
   }
@@ -205,6 +336,12 @@ class _ProfileVideoGridState extends State<ProfileVideoGrid> {
         onTap: () {
           setState(() {
             _selectedTabIndex = index;
+            // Load appropriate data when tab changes
+            if (_selectedTabIndex == 0) {
+              _loadCreatorVideos();
+            } else {
+              _loadSavedVideos();
+            }
           });
         },
         child: Container(

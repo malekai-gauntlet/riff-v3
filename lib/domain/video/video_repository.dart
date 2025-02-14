@@ -175,4 +175,41 @@ class VideoRepository {
       rethrow;
     }
   }
+  
+  // Get videos created by a specific user
+  Future<List<Video>> getCreatorVideos(String creatorId, {
+    int limit = 10,
+    DocumentSnapshot? startAfter,
+  }) async {
+    try {
+      print('\n🎥 Fetching creator videos:');
+      print('👤 Creator ID: $creatorId');
+      print('📊 Limit: $limit');
+      print('📍 Start After: ${startAfter?.id}');
+      
+      Query query = _videos
+          .where('creatorId', isEqualTo: creatorId)
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+          
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      
+      final snapshot = await query.get();
+      final videos = snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList();
+      
+      print('✅ Fetched ${videos.length} videos');
+      if (videos.isNotEmpty) {
+        print('📝 First video details:');
+        print('   - ID: ${videos[0].id}');
+        print('   - Title: ${videos[0].title}');
+      }
+      
+      return videos;
+    } catch (e) {
+      print('❌ Error fetching creator videos: $e');
+      rethrow;
+    }
+  }
 } 
