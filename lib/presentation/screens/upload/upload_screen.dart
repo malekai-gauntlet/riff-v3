@@ -14,6 +14,7 @@ class _UploadScreenState extends State<UploadScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _artistController = TextEditingController();
+  final _descriptionController = TextEditingController();
   
   bool _isUploading = false;
   double _uploadProgress = 0;
@@ -24,6 +25,7 @@ class _UploadScreenState extends State<UploadScreen> {
   void dispose() {
     _titleController.dispose();
     _artistController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -59,6 +61,7 @@ class _UploadScreenState extends State<UploadScreen> {
         },
         title: _titleController.text,
         artist: _artistController.text.isNotEmpty ? _artistController.text : null,
+        description: _descriptionController.text,
       );
 
       print('✅ Video uploaded successfully!');
@@ -233,6 +236,38 @@ class _UploadScreenState extends State<UploadScreen> {
                       borderSide: BorderSide.none,
                     ),
                   ),
+                ),
+                const SizedBox(height: 24),
+
+                // Description Field
+                const Text(
+                  'Description',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _descriptionController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Enter video description',
+                    hintStyle: TextStyle(color: Colors.grey[600]),
+                    filled: true,
+                    fillColor: Colors.grey[900],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a description';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 24),
 

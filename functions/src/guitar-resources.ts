@@ -67,60 +67,47 @@ export const gatherGuitarResources = functions.https.onCall(
         exists: !!apiKey,
         length: apiKey?.length ?? 0,
         firstChar: apiKey ? apiKey[0] : 'none',
-        lastChar: apiKey ? apiKey[apiKey.length - 1] : 'none'
+        lastChar: apiKey ? apiKey[apiKey.length - 1] : 'none',
+        startsWithPplx: apiKey?.startsWith('pplx-') || false  // Add this check
       });
 
-      console.log('📡 Making Perplexity API request...');
+      console.log('📡 Making Perplexity API request with config:', {
+        url: 'https://api.perplexity.ai/chat/completions',
+        model: 'sonar-pro',
+        hasAuthHeader: !!apiKey,
+        authHeaderFormat: apiKey ? `Bearer ${apiKey.substring(0, 10)}...` : 'none'
+      });
       let response;
       try {
         response = await axios.post(
           'https://api.perplexity.ai/chat/completions',
           {
-            model: 'llama-3.1-sonar-huge-128k-online',
+            model: 'sonar-pro',
             messages: [
               {
                 role: 'system',
-                content: `You are a guitar expert assistant. Search for and return guitar learning resources in JSON format. You must return EXACTLY ONE of each:
-                1. ONE best rated Guitar Pro tab on Ultimate Guitar (specifically look for .gp5, .gpx, or .gp files)
-                   - Sort by rating (4+ stars preferred)
-                   - Check number of reviews
-                   - Prioritize official or highly verified tabs
-                2. ONE best standard tab on Ultimate Guitar
-                   - Must have 4+ star rating
-                   - Consider number of reviews
-                3. ONE best YouTube tutorial
-                   - Consider views, likes, and teaching quality
-                   - Prefer comprehensive lessons from well-known teachers
-                Return only direct URLs and relevant metadata. For Guitar Pro tabs, ensure you find the actual tab file, not just the preview page. You must return exactly one of each type - no more, no less.`
+                content: 'You are a guitar expert assistant. Search for and return guitar learning resources in JSON format. You must return EXACTLY ONE of each: 1. ONE best rated Guitar Pro tab on Ultimate Guitar (specifically look for .gp5, .gpx, or .gp files) - Sort by rating (4+ stars preferred) - Check number of reviews - Prioritize official or highly verified tabs 2. ONE best standard tab on Ultimate Guitar - Must have 4+ star rating - Consider number of reviews 3. ONE best YouTube tutorial - Consider views, likes, and teaching quality - Prefer comprehensive lessons from well-known teachers Return only direct URLs and relevant metadata. For Guitar Pro tabs, ensure you find the actual tab file, not just the preview page. You must return exactly one of each type - no more, no less.'
               },
               {
                 role: 'user',
-                content: `Find guitar learning resources for "${searchQuery}". Return in this exact JSON format, with exactly one item in each array:
-                {
-                  "tabs": [{
-                    "difficulty": "beginner|intermediate|advanced",
-                    "rating": "0.0/5",
-                    "title": "exact tab title",
-                    "type": "tab",
-                    "url": "ultimate-guitar-url"
-                  }],
-                  "guitarproUrl": "direct-guitar-pro-url",
-                  "tutorials": [{
-                    "channelName": "YouTube channel name",
-                    "title": "exact video title",
-                    "url": "youtube-url",
-                    "viewCount": "view count with units (e.g., 211k views)"
-                  }]
-                }
-                Remember: Return exactly ONE tab, ONE Guitar Pro URL, and ONE tutorial.`
+                content: `Find guitar learning resources for "${searchQuery}". Return in this exact JSON format, with exactly one item in each array: { "tabs": [{ "difficulty": "beginner|intermediate|advanced", "rating": "0.0/5", "title": "exact tab title", "type": "tab", "url": "ultimate-guitar-url" }], "guitarproUrl": "direct-guitar-pro-url", "tutorials": [{ "channelName": "YouTube channel name", "title": "exact video title", "url": "youtube-url", "viewCount": "view count with units (e.g., 211k views)" }] } Remember: Return exactly ONE tab, ONE Guitar Pro URL, and ONE tutorial.`
               }
             ],
-            temperature: 0.5,
-            max_tokens: 1000,
+            temperature: 0.2,
+            top_p: 0.9,
+            return_citations: true,
+            search_domain_filter: ['perplexity.ai'],
+            return_images: false,
+            return_related_questions: false,
+            search_recency_filter: 'month',
+            top_k: 0,
+            stream: false,
+            presence_penalty: 0,
+            frequency_penalty: 1
           },
           {
             headers: {
-              'Authorization': `Bearer ${apiKey}`,
+              'Authorization': 'Bearer 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',
               'Content-Type': 'application/json',
               'Accept': 'application/json',
             },
@@ -140,7 +127,7 @@ export const gatherGuitarResources = functions.https.onCall(
         // Update Firestore document
         const db = admin.firestore();
         await db.collection('videos').doc(videoId).update({
-          // Add tutorials array with the found tutorial
+          // Add tutorials array with the found tutorial and its associated tabs
           tutorials: resources.tutorials.map((tutorial: Tutorial) => ({
             channelName: tutorial.channelName,
             title: tutorial.title,
@@ -149,15 +136,8 @@ export const gatherGuitarResources = functions.https.onCall(
             thumbnailUrl: '', // Will be populated later if needed
             youtubeId: tutorial.url.split('v=')[1] || '', // Extract YouTube ID from URL
             duration: '', // Will be populated later if needed
-            isBestMatch: true // Since we're only getting one best match
-          })),
-          // Add tabs array with the found tab
-          tabs: resources.tabs.map((tab: Tab) => ({
-            difficulty: tab.difficulty,
-            rating: tab.rating,
-            title: tab.title,
-            type: tab.type,
-            url: tab.url
+            isBestMatch: true, // Since we're only getting one best match
+            tabs: resources.tabs // Nest tabs inside the tutorial
           })),
           // Add guitarproUrl if found
           guitarproUrl: resources.guitarproUrl || null,
@@ -178,7 +158,13 @@ export const gatherGuitarResources = functions.https.onCall(
           data: apiError.response?.data,
           headers: apiError.response?.headers,
           error: apiError.message,
-          stack: apiError.stack
+          stack: apiError.stack,
+          requestConfig: {
+            url: apiError.config?.url,
+            method: apiError.config?.method,
+            hasData: !!apiError.config?.data,
+            dataPreview: apiError.config?.data ? JSON.stringify(apiError.config.data).substring(0, 100) + '...' : null
+          }
         });
         throw new functions.https.HttpsError(
           'internal',

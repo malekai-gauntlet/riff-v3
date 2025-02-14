@@ -33,6 +33,7 @@ class VideoUploadService {
     required Function(double) onProgress,
     required String title,
     String? artist,
+    required String description,
   }) async {
     try {
       final user = _auth.currentUser;
@@ -75,7 +76,7 @@ class VideoUploadService {
       final docRef = await _firestore.collection('videos').add({
         'url': downloadUrl,
         'title': title,
-        'artist': artist,
+        'description': description,
         'creatorId': user.uid,
         'createdAt': FieldValue.serverTimestamp(),
         'likeCount': 0,

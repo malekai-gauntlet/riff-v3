@@ -14,7 +14,7 @@ class ProfileVideoGrid extends StatefulWidget {
 }
 
 class _ProfileVideoGridState extends State<ProfileVideoGrid> {
-  // Track which tab is selected (0 = Saved Recordings, 1 = Tutorials)
+  // Track which tab is selected (0 = Your Riffs, 1 = Saved)
   int _selectedTabIndex = 0;
   
   // Repository instance
@@ -85,8 +85,8 @@ class _ProfileVideoGridState extends State<ProfileVideoGrid> {
           color: Colors.white,
           child: Row(
             children: [
-              _buildTab(0, 'Saved Recordings'),
-              _buildTab(1, 'Tutorials'),
+              _buildTab(0, 'Your Riffs'),
+              _buildTab(1, 'Saved'),
             ],
           ),
         ),
@@ -94,8 +94,8 @@ class _ProfileVideoGridState extends State<ProfileVideoGrid> {
         // Video grid
         Expanded(
           child: _selectedTabIndex == 0
-              ? _buildSavedRecordingsGrid()
-              : _buildTutorialsGrid(),
+              ? _buildTutorialsGrid()
+              : _buildSavedRecordingsGrid(),
         ),
       ],
     );
