@@ -299,6 +299,18 @@ class _VideoActionButtonsState extends State<VideoActionButtons> {
             onTap: () {
               // Pause the video if controller exists
               widget.controller?.pause();
+              
+              // Check if video has any tabs
+              if (widget.video.tutorials.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('No tabs available for this video'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                return;
+              }
+              
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => TutorialScreen(

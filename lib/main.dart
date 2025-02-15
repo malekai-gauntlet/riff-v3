@@ -8,11 +8,13 @@ import 'presentation/screens/feed/feed_screen.dart';
 import 'presentation/screens/tab/tab_view_screen.dart';
 import 'presentation/screens/discover/discover_screen.dart';
 import 'presentation/screens/tab/static_tab_view_screen.dart';
+import 'presentation/screens/saved_videos/saved_video_view_screen.dart';
 import 'presentation/widgets/navigation/bottom_nav_bar.dart';
 import 'presentation/widgets/navigation/feed_toggle.dart';
 import 'presentation/widgets/video/video_action_buttons.dart';
 import 'auth/infrastructure/auth_repository.dart';
 import 'domain/video/video_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -162,30 +164,31 @@ class _HomePageState extends State<HomePage> {
                     difficulty: 'Intermediate',
                     lastModified: '2 days ago',
                   ),
-                  _buildTabCard(
-                    title: 'Smoke on the Water',
-                    artist: 'Deep Purple',
-                    difficulty: 'Beginner',
-                    lastModified: '1 week ago',
-                  ),
-                  _buildTabCard(
-                    title: 'Iron Man',
-                    artist: 'Black Sabbath',
-                    difficulty: 'Intermediate',
-                    lastModified: '3 days ago',
-                  ),
-                  _buildTabCard(
-                    title: 'Sweet Child O\' Mine',
-                    artist: 'Guns N\' Roses',
-                    difficulty: 'Advanced',
-                    lastModified: '5 days ago',
-                  ),
-                  _buildTabCard(
-                    title: 'Nothing Else Matters',
-                    artist: 'Metallica',
-                    difficulty: 'Intermediate',
-                    lastModified: 'Just now',
-                  ),
+                  // Temporarily hidden tab cards for future implementation
+                  // _buildTabCard(
+                  //   title: 'Smoke on the Water', 
+                  //   artist: 'Deep Purple',
+                  //   difficulty: 'Beginner',
+                  //   lastModified: '1 week ago',
+                  // ),
+                  // _buildTabCard(
+                  //   title: 'Iron Man',
+                  //   artist: 'Black Sabbath', 
+                  //   difficulty: 'Intermediate',
+                  //   lastModified: '3 days ago',
+                  // ),
+                  // _buildTabCard(
+                  //   title: 'Sweet Child O\' Mine',
+                  //   artist: 'Guns N\' Roses',
+                  //   difficulty: 'Advanced', 
+                  //   lastModified: '5 days ago',
+                  // ),
+                  // _buildTabCard(
+                  //   title: 'Nothing Else Matters',
+                  //   artist: 'Metallica',
+                  //   difficulty: 'Intermediate',
+                  //   lastModified: 'Just now',
+                  // ),
                 ],
               ),
             ),
@@ -388,4 +391,80 @@ class CustomPageTransitionsBuilder extends PageTransitionsBuilder {
       child: child,
     );
   }
+}
+
+Widget _buildVideoCard(BuildContext context, Video video) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => SavedVideoViewScreen(
+            initialVideo: video,
+            savedVideos: [video], // Pass single video in list since we're viewing just one
+            initialIndex: 0,      // First and only video
+          ),
+        ),
+      );
+    },
+    child: Stack(
+      children: [
+        // Thumbnail
+        AspectRatio(
+          aspectRatio: 9 / 16,
+          child: video.thumbnailUrl != null
+              ? CachedNetworkImage(
+                  imageUrl: video.thumbnailUrl!,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[900],
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[900],
+                    child: const Center(
+                      child: Icon(Icons.error),
+                    ),
+                  ),
+                )
+              : Container(
+                  color: Colors.grey[900],
+                  child: const Center(
+                    child: Icon(Icons.video_library),
+                  ),
+                ),
+        ),
+        // Title overlay
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withOpacity(0.7),
+                ],
+              ),
+            ),
+            child: Text(
+              video.title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }

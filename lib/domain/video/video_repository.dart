@@ -24,8 +24,23 @@ class VideoRepository {
       final snapshot = await query.get();
       final videos = snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList();
       
-      // Shuffle the videos randomly
+      // Find and remove the specific video if it exists
+      final specificVideoId = 'QyMyGZN0Oi7bmx3jRF5T';
+      final specificVideoIndex = videos.indexWhere((v) => v.id == specificVideoId);
+      Video? specificVideo;
+      if (specificVideoIndex != -1) {
+        specificVideo = videos.removeAt(specificVideoIndex);
+      }
+      
+      // Shuffle the remaining videos
       videos.shuffle();
+      
+      // Insert the specific video at position 1 (second position) if it exists
+      if (specificVideo != null) {
+        // Make sure we have enough videos to insert at position 1
+        final insertPosition = videos.length >= 1 ? 1 : videos.length;
+        videos.insert(insertPosition, specificVideo);
+      }
       
       return videos;
     } catch (e) {

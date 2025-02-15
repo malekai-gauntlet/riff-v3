@@ -651,13 +651,14 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
         api.playbackSpeed = speedLevel;
       };
 
+      /* Voice Control Code - Commented Out
       // Voice command setup with mobile PWA support
       let recognition = null;
       let isRecognitionActive = false;
       
       // Function to show status messages to user
       function showVoiceStatus(message, isError = false) {
-        console.log('[Voice Status]', message); // Add logging for all status messages
+        console.log('[Voice Status]', message);
         const statusDiv = document.createElement('div');
         statusDiv.style.position = 'fixed';
         statusDiv.style.bottom = '60px';
@@ -689,10 +690,9 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
           console.log('[Voice Init] Microphone permission granted');
           
           recognition = new webkitSpeechRecognition();
-          // Make recognition more responsive
-          recognition.continuous = false;  // Process commands faster
-          recognition.interimResults = true;  // Get faster results
-          recognition.maxAlternatives = 1;  // Reduce processing overhead
+          recognition.continuous = false;
+          recognition.interimResults = true;
+          recognition.maxAlternatives = 1;
           
           recognition.onstart = () => {
             console.log('[Voice] Recognition started');
@@ -707,29 +707,24 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
               showVoiceStatus('Voice recognition error: ' + event.error, true);
             }
             isRecognitionActive = false;
-            // Immediately restart recognition
             if (!isRecognitionActive) recognition.start();
           };
           
           recognition.onend = () => {
             console.log('[Voice] Recognition ended');
             isRecognitionActive = false;
-            // Immediately restart recognition
             recognition.start();
           };
           
           recognition.onresult = (event) => {
-            // Process interim results for faster response
             const result = event.results[event.results.length - 1];
-            if (result.isFinal || result[0].confidence > 0.7) {  // Accept high confidence interim results
+            if (result.isFinal || result[0].confidence > 0.7) {
               const command = result[0].transcript.toLowerCase().trim();
               console.log('[Voice Command] Received:', command);
               
-              // Handle "start over" command regardless of player state
               if (command.includes('start over') || command.includes('restart')) {
                 console.log('[Voice] Executing start over');
                 api.stop();
-                // Add a small delay before playing to ensure the stop command is fully processed
                 setTimeout(() => {
                   console.log('[Voice] Auto-playing after start over');
                   api.play();
@@ -738,7 +733,6 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
                 return;
               }
               
-              // When playing, listen for "pause"
               if (api.playerState === alphaTab.synth.PlayerState.Playing) {
                 if (command.includes('pause') || command.includes('stop')) {
                   console.log('[Voice] Executing pause');
@@ -746,7 +740,6 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
                   showVoiceStatus('Paused');
                 }
               }
-              // When not playing, listen for "play"
               else {
                 if (command.includes('play') || command.includes('start')) {
                   console.log('[Voice] Executing play');
@@ -761,7 +754,7 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
             }
           };
 
-          // Add voice command indicator that shows current valid commands
+          // Add voice command indicator
           const controlsRight = wrapper.querySelector('.at-controls-right');
           const voiceIndicator = document.createElement('div');
           voiceIndicator.style.marginLeft = '10px';
@@ -781,9 +774,7 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
             }
           });
 
-          // Start recognition immediately
           recognition.start();
-
           console.log('[Voice Init] Setup complete');
           
         } catch (error) {
@@ -816,7 +807,7 @@ class _StaticTabViewScreenState extends State<StaticTabViewScreen> {
           recognition.stop();
         }
       });
-      
+      */
     </script>
 </body>
 </html>
